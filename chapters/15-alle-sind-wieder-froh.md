@@ -11,6 +11,7 @@ Der Wolf lief beschämt tief in den **Wald** zurück.
 Alle atmeten erleichtert durch.
 
 Rotkäppchen legte die fünf Blumen auf den Tisch und lächelte.
-Es dachte an Mamas Worte und nickte leise für sich.
+Es dachte an Mamas Worte.
+Dabei wusste sie: Ältere Menschen verdienen Respekt, Liebe & Aufmerksamkeit.
 
 > Ich bleibe immer auf dem Weg – das verspreche ich.
