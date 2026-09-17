@@ -1,0 +1,15 @@
+---
+title: Alle sind wieder froh
+subtitle: Von einer großen Umarmung, Sicherheit und einer wichtigen Lektion
+order: 15
+palette: hearth
+---
+
+Oma, Rotkäppchen und der Jäger umarmten sich fest.
+Der Wolf lief beschämt tief in den **Wald** zurück.
+Alle atmeten erleichtert durch.
+
+Rotkäppchen legte die fünf Blumen auf den Tisch und lächelte.
+Es dachte an Mamas Worte und nickte leise für sich.
+
+> Ich bleibe immer auf dem Weg – das verspreche ich.
