@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """Erzeugt Platzhalter-Illustrationen im Scherenschnitt-Stil.
 
-Die Bilder sind bewusst schlicht: sie belegen die Asset-Pipeline
-end-to-end und werden spaeter durch echte Illustrationen mit denselben
-Dateinamen ersetzt. Der Builder reduziert ohnehin jedes Bild auf die
-Palette des Kapitels, deshalb reichen hier zwei Tonwerte.
+Die Bilder landen in beispiele/bilder/ und sind bewusst schlicht: sie
+belegen die Asset-Pipeline end-to-end und werden spaeter durch echte
+Illustrationen mit denselben Dateinamen ersetzt. Der Builder reduziert
+ohnehin jedes Bild auf die Palette des Kapitels, deshalb reichen hier
+zwei Tonwerte.
 """
 
 from __future__ import annotations
@@ -24,7 +25,7 @@ NEAR = (38, 46, 40)
 MARK = (168, 30, 45)
 
 ROOT = Path(__file__).resolve().parent.parent
-OUT = ROOT / "assets" / "images"
+OUT = ROOT / "beispiele" / "bilder"
 
 
 def canvas() -> tuple[Image.Image, ImageDraw.ImageDraw]:

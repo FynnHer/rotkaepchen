@@ -80,7 +80,10 @@ def book_dir(tmp_path: Path) -> Path:
     (tmp_path / "chapters" / "01-erstes.md").write_text(CHAPTER_ONE, encoding="utf-8")
     (tmp_path / "chapters" / "02-zweites.md").write_text(CHAPTER_TWO, encoding="utf-8")
     for name in ("wald", "wolf"):
-        shutil.copy(ROOT / "assets" / "images" / f"{name}.png", tmp_path / "assets" / f"{name}.png")
+        shutil.copy(
+            ROOT / "beispiele" / "bilder" / f"{name}.png",
+            tmp_path / "assets" / f"{name}.png",
+        )
     return tmp_path
 
 

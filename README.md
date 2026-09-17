@@ -6,9 +6,9 @@ Asset — Layout, Typografie und Farben stehen an genau einer Stelle:
 [`book.toml`](book.toml).
 
 ```
-chapters/*.md   ──┐
-assets/images/* ──┼──►  buchbauer  ──►  build/rotkaeppchen.pdf
-book.toml       ──┘                      + build/rotkaeppchen-farbreport.json
+chapters/*.md      ──┐
+beispiele/bilder/* ──┼──►  buchbauer  ──►  build/rotkaeppchen.pdf
+book.toml          ──┘                      + build/rotkaeppchen-farbreport.json
 ```
 
 ## Schnellstart
@@ -140,7 +140,8 @@ Seiten; 59 Tests decken die Bausteine ab.
 Aus Issue #4 sind Anschnitt, Schnittmarken, CMYK und die 300-dpi-Prüfung
 vorhanden; Rechtschreibprüfung und Probedruck stehen aus.
 
-Die Illustrationen unter `assets/images/` sind **Platzhalter** aus
-`tools/make_placeholder_assets.py` und werden durch echte Bilder gleichen
-Namens ersetzt (Issue #6). Issue #6 nimmt Bilder ausdrücklich von der
-Drei-Farben-Regel aus — dafür genügt `images.tritone = false`.
+Die Illustrationen unter `beispiele/bilder/` sind **Platzhalter** aus
+`tools/make_placeholder_assets.py`. Echte Bilder kommen in einen eigenen
+Ordner; danach zeigt `book.assets_dir` in `book.toml` dorthin — eine Zeile,
+sonst ändert sich nichts (Issue #6). Issue #6 nimmt Bilder ausdrücklich von
+der Drei-Farben-Regel aus — dafür genügt `images.tritone = false`.

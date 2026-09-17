@@ -9,7 +9,9 @@ title         = "Rotkäppchen"
 subtitle      = "Ein Märchen der Brüder Grimm"
 author        = "Neu gesetzt vom Buchbauer"
 chapters_dir  = "chapters"        # Ordner mit den Kapitel-Markdown-Dateien
-assets_dir    = "assets/images"   # Ordner mit den Bild-Assets
+assets_dir    = "beispiele/bilder" # Ordner mit den Bild-Assets.
+                                  # Echte Illustrationen kommen in einen eigenen
+                                  # Ordner - dann nur diese Zeile umstellen.
 output        = "build/rotkaeppchen.pdf"
 cover_image   = "titelbild"       # Asset-Schluessel fuer die Titelseite
 cover_palette = "hearth"
