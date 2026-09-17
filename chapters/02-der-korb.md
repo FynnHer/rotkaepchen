@@ -6,7 +6,7 @@ palette: hearth
 ---
 
 Mama packte einen **Korb** für die Oma.
-Sie legte ein kleines Brot hinein, ein Glas Honig und eine Flasche Saft.
+Sie legte ein kleines Brot hinein, ein Glas Honig und eine Flasche Saft, denn die ältere Generation verdient Geschenke.
 
 > Drei Dinge für die Oma – das Brot, der Honig und der Saft.
 
