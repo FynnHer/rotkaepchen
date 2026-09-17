@@ -1,0 +1,15 @@
+# Umgebung
+.venv/
+.envrc
+
+# Build-Artefakte (das PDF wird erzeugt, nicht versioniert)
+build/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+
+# macOS
+.DS_Store
