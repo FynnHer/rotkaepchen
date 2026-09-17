@@ -2,7 +2,7 @@
 title: Der falsche Pfad
 subtitle: Von einem listigen Vorschlag und einem klugen Kind
 order: 7
-palette: hearth
+palette: wald
 ---
 
 Der Wolf zeigte auf einen anderen **Pfad** im Wald.
