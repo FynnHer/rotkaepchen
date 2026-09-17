@@ -104,3 +104,15 @@ def test_missing_asset_reference_is_reported(book_dir):
     chapter.write_text("---\ntitle: X\norder: 1\nhero: einhorn\n---\n\nText.\n", encoding="utf-8")
     with pytest.raises(AssetError, match="einhorn"):
         _build(load_config(book_dir / "book.toml"))
+
+
+def test_empty_asset_folder_is_reported(book_dir):
+    for image in (book_dir / "assets").glob("*.png"):
+        image.unlink()
+    path = book_dir / "book.toml"
+    path.write_text(
+        path.read_text(encoding="utf-8").replace('cover_image  = "wald"', "cover_image  = \"\""),
+        encoding="utf-8",
+    )
+    result = _build(load_config(path))
+    assert any("kein einziges Bild" in w for w in result.warnings)
