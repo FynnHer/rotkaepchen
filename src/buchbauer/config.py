@@ -24,6 +24,9 @@ __all__ = [
     "TocConfig",
     "PrintConfig",
     "CoverConfig",
+    "AboutConfig",
+    "ActivityPage",
+    "ActivityConfig",
     "Palette",
     "ConfigError",
     "load_config",
@@ -209,8 +212,68 @@ class PrintConfig:
 @dataclass(frozen=True)
 class CoverConfig:
     full_page_image: bool = True
+    # Das Titelfeld setzt Titel, Untertitel und Autor ueber das Bild.
+    # Bringt der Umschlag seine Typografie schon mit, bleibt es weg.
+    typeset_band: bool = True
+    # Umschlagbild auf die Palette reduzieren. None uebernimmt images.tritone;
+    # false zeigt den Umschlag in seinen eigenen Farben.
+    tritone: bool | None = None
     band_height_ratio: float = 0.34
     band_inset_mm: float = 0.0
+
+
+@dataclass(frozen=True)
+class AboutConfig:
+    """Die Seite ueber die Verfasser des Maerchens.
+
+    Ihr Text steht in einer eigenen Markdown-Datei - wie ein Kapitel, nur
+    ohne Nummer. ``after`` bestimmt den Platz im Buch: ``0`` stellt sie
+    vor das erste Kapitel.
+    """
+
+    enabled: bool = False
+    file: Path | None = None
+    after: int = 0
+    palette: str | None = None
+    # Anteil der Satzspiegelhoehe fuer das Bild. Kleiner als bei einem
+    # Kapitelaufschlag, damit Bild und Text auf eine Seite passen.
+    image_height_ratio: float = 0.34
+
+
+@dataclass(frozen=True)
+class ActivityPage:
+    """Eine Mitmach-Seite (Raetsel) zwischen zwei Kapiteln.
+
+    ``after`` ist die Nummer des Kapitels, hinter dem die Seite steht;
+    ``0`` stellt sie vor das erste Kapitel.
+    """
+
+    image: str
+    after: int
+    title: str = ""
+
+
+@dataclass(frozen=True)
+class ActivityConfig:
+    """Die Raetselseiten und ihr eigener Bildordner."""
+
+    enabled: bool = True
+    directory: Path | None = None
+    tritone: bool = False
+    in_toc: bool = True
+    pages: tuple[ActivityPage, ...] = ()
+
+    def after(self, chapter_number: int) -> list[ActivityPage]:
+        """Alle Seiten, die hinter diesem Kapitel stehen."""
+        if not self.enabled:
+            return []
+        return [page for page in self.pages if page.after == chapter_number]
+
+    def beyond(self, last_chapter: int) -> list[ActivityPage]:
+        """Seiten, deren Anker hinter dem letzten Kapitel liegt."""
+        if not self.enabled:
+            return []
+        return [page for page in self.pages if page.after > last_chapter]
 
 
 @dataclass(frozen=True)
@@ -226,7 +289,7 @@ class BookConfig:
     subtitle: str
     author: str
     chapters_dir: Path
-    assets_dir: Path
+    assets_dir: tuple[Path, ...]
     output: Path
     cover_image: str | None
     cover_palette: str
@@ -237,6 +300,8 @@ class BookConfig:
     toc: TocConfig
     printing: PrintConfig
     cover: CoverConfig
+    about: AboutConfig
+    activities: ActivityConfig
     asset_aliases: dict[str, list[str]]
     asset_captions: dict[str, str]
     raw: dict[str, Any] = field(default_factory=dict, repr=False)
@@ -316,10 +381,26 @@ DEFAULTS: dict[str, Any] = {
     },
     "cover": {
         "full_page_image": True,
+        "typeset_band": True,
+        "tritone": None,
         "band_height_ratio": 0.34,
         "band_inset_mm": 0.0,
     },
     "assets": {"aliases": {}, "captions": {}},
+    "about": {
+        "enabled": False,
+        "file": "",
+        "after": 0,
+        "palette": None,
+        "image_height_ratio": 0.34,
+    },
+    "activities": {
+        "enabled": True,
+        "dir": "assets/raetsel",
+        "tritone": False,
+        "in_toc": True,
+        "pages": [],
+    },
 }
 
 
@@ -335,6 +416,74 @@ def _page_size(spec: Any) -> tuple[float, float]:
     if isinstance(spec, (list, tuple)) and len(spec) == 2:
         return (float(spec[0]) * mm, float(spec[1]) * mm)
     raise ConfigError(f"Ungueltige Angabe fuer page.format: {spec!r}")
+
+
+def _asset_dirs(spec: Any, root: Path) -> tuple[Path, ...]:
+    """Ein Ordner oder mehrere - bei mehreren gewinnt der erste."""
+    values = [spec] if isinstance(spec, (str, Path)) else list(spec or [])
+    if not values:
+        raise ConfigError("book.assets_dir ist leer.")
+    return tuple((root / str(value)).resolve() for value in values)
+
+
+def _build_about(raw: dict[str, Any], root: Path, colors: ColorConfig) -> AboutConfig:
+    """Liest ``[about]`` - die Seite ueber die Gebrueder Grimm."""
+    enabled = bool(raw.get("enabled", False))
+    file_name = str(raw.get("file", "") or "").strip()
+    if enabled and not file_name:
+        raise ConfigError("about.enabled ist gesetzt, aber about.file fehlt.")
+    path = (root / file_name).resolve() if file_name else None
+    if enabled and path is not None and not path.is_file():
+        raise ConfigError(f"Datei der Autorenseite nicht gefunden: {path}")
+    after = raw.get("after", 0)
+    if not isinstance(after, int) or isinstance(after, bool) or after < 0:
+        raise ConfigError(
+            f"about.after ist die Nummer des Kapitels, hinter dem die "
+            f"Autorenseite steht (0 = davor), nicht {after!r}."
+        )
+    palette = raw.get("palette")
+    if palette:
+        colors.get(str(palette))
+    return AboutConfig(
+        enabled=enabled,
+        file=path,
+        after=after,
+        palette=str(palette) if palette else None,
+        image_height_ratio=float(raw.get("image_height_ratio", 0.34)),
+    )
+
+
+def _build_activities(raw: dict[str, Any], root: Path) -> ActivityConfig:
+    """Liest ``[activities]`` samt der Liste ``[[activities.pages]]``."""
+    pages: list[ActivityPage] = []
+    for entry in raw.get("pages") or []:
+        if not isinstance(entry, dict):
+            raise ConfigError(
+                "Jede Raetselseite ist eine Tabelle [[activities.pages]] "
+                f"mit image/after, nicht {entry!r}."
+            )
+        image = str(entry.get("image", "")).strip()
+        if not image:
+            raise ConfigError("Einer Raetselseite fehlt der Schluessel 'image'.")
+        after = entry.get("after")
+        if not isinstance(after, int) or isinstance(after, bool) or after < 0:
+            raise ConfigError(
+                f"Raetselseite {image!r}: 'after' ist die Nummer des Kapitels, "
+                f"hinter dem sie steht (0 = vor dem ersten Kapitel), nicht {after!r}."
+            )
+        pages.append(
+            ActivityPage(image=image, after=after, title=str(entry.get("title", "")))
+        )
+    # Sortiert nach Anker, damit die Reihenfolge im Buch nicht von der
+    # Reihenfolge in der Konfiguration abhaengt.
+    pages.sort(key=lambda page: (page.after, page.image))
+    return ActivityConfig(
+        enabled=bool(raw.get("enabled", True)),
+        directory=(root / str(raw.get("dir", "assets/raetsel"))).resolve(),
+        tritone=bool(raw.get("tritone", False)),
+        in_toc=bool(raw.get("in_toc", True)),
+        pages=tuple(pages),
+    )
 
 
 def _build_palettes(raw: dict[str, Any]) -> dict[str, Palette]:
@@ -498,13 +647,16 @@ def load_config(path: str | Path) -> BookConfig:
     cover_palette = str(book["cover_palette"])
     colors.get(cover_palette)
 
+    about = _build_about(data["about"], root, colors)
+    activities = _build_activities(data["activities"], root)
+
     return BookConfig(
         root=root,
         title=str(book["title"]),
         subtitle=str(book["subtitle"]),
         author=str(book["author"]),
         chapters_dir=(root / str(book["chapters_dir"])).resolve(),
-        assets_dir=(root / str(book["assets_dir"])).resolve(),
+        assets_dir=_asset_dirs(book["assets_dir"], root),
         output=(root / str(book["output"])).resolve(),
         cover_image=book["cover_image"],
         cover_palette=cover_palette,
@@ -518,9 +670,17 @@ def load_config(path: str | Path) -> BookConfig:
         printing=printing,
         cover=CoverConfig(
             full_page_image=bool(data["cover"]["full_page_image"]),
+            typeset_band=bool(data["cover"]["typeset_band"]),
+            tritone=(
+                None
+                if data["cover"]["tritone"] is None
+                else bool(data["cover"]["tritone"])
+            ),
             band_height_ratio=float(data["cover"]["band_height_ratio"]),
             band_inset_mm=float(data["cover"]["band_inset_mm"]) * mm,
         ),
+        about=about,
+        activities=activities,
         asset_aliases=aliases,
         asset_captions=captions,
         raw=data,

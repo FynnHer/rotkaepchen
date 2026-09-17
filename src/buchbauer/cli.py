@@ -49,6 +49,14 @@ def _inspect(config) -> int:
     print(f"Konfiguration : {config.root}")
     print(f"Kapitel-Ordner: {config.chapters_dir}")
     print(f"Asset-Ordner  : {config.assets_dir}  ({len(library)} Bilder)")
+    activities = config.activities
+    if activities.enabled and activities.pages:
+        print(
+            f"Raetselseiten : {activities.directory}  "
+            f"({len(activities.pages)} Seiten)"
+        )
+    if not len(library):
+        print("     ! kein einziges Bild - das Buch entstuende ohne Illustrationen")
     print(f"Ausgabe       : {config.output}")
     print()
     for chapter in chapters:
@@ -66,7 +74,12 @@ def _inspect(config) -> int:
                 f"     Illustration: {match.asset.key} "
                 f"(Quelle: {match.source}, Treffer: {match.score})"
             )
+        for page in config.activities.after(chapter.number):
+            print(f"     -> Raetselseite: {page.image}  {page.title}".rstrip())
         print()
+    last = chapters[-1].number if chapters else 0
+    for page in config.activities.beyond(last):
+        print(f"     -> Raetselseite: {page.image}  {page.title}".rstrip())
     return 0
 
 

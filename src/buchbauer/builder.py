@@ -12,6 +12,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY, TA_LEFT, TA_RIGHT
+from reportlab.lib.utils import ImageReader
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
@@ -30,9 +31,9 @@ from reportlab.platypus.tables import TableStyle
 from reportlab.platypus.tableofcontents import TableOfContents
 
 from .assets import AssetLibrary
-from .chapters import Chapter, load_chapters
+from .chapters import Chapter, load_about, load_chapters
 from .colors import ColorRecorder, hex_color as _hex_color, make_canvasmaker
-from .config import BookConfig, Palette
+from .config import ActivityPage, BookConfig, Palette
 from .images import fit_size, prepare_image
 from .markdown import Block
 
@@ -45,7 +46,10 @@ ORDINALS = [
 
 
 def chapter_label(number: int) -> str:
-    if 1 <= number <= len(ORDINALS):
+    """Die Zeile ueber dem Kapiteltitel. Seiten ohne Nummer bekommen keine."""
+    if number < 1:
+        return ""
+    if number <= len(ORDINALS):
         return f"{ORDINALS[number - 1]} Kapitel"
     return f"Kapitel {number}"
 
@@ -122,6 +126,60 @@ class WideImage(Flowable):
         )
 
 
+class ActivityImage(Flowable):
+    """Eine Raetselseite: ein Bild randabfallend ueber die ganze Seite.
+
+    Die Seite bringt Titel und Aufgabenstellung selbst mit, deshalb setzt
+    das Buch nichts darueber. Gezeichnet wird ab dem Ursprung der
+    PDF-Seite, nicht ab dem Satzspiegel - der Rahmen dient nur dazu, dem
+    Umbruch eine volle Seite abzuverlangen.
+    """
+
+    def __init__(self, path: str, media_size: tuple[float, float],
+                 origin: tuple[float, float], title: str = "", key: str = ""):
+        super().__init__()
+        self.path = path
+        self.media_width, self.media_height = media_size
+        self.origin_x, self.origin_y = origin
+        self.title = title
+        self.key = key
+        self.width = 0.0
+        self.height = 0.0
+
+    def wrap(self, available_width: float, available_height: float):
+        self.width = available_width
+        self.height = available_height
+        return (available_width, available_height)
+
+    def draw(self):
+        canv = self.canv
+        canv.saveState()
+        canv.translate(-self.origin_x, -self.origin_y)
+        path = canv.beginPath()
+        path.rect(0, 0, self.media_width, self.media_height)
+        canv.clipPath(path, stroke=0, fill=0)
+        canv.drawImage(
+            self.path, *self._placement(), mask=None
+        )
+        canv.restoreState()
+
+    def _placement(self) -> tuple[float, float, float, float]:
+        """Formatfuellend zentriert - der Ueberstand laeuft in den Anschnitt."""
+        image = ImageReader(self.path)
+        source_width, source_height = image.getSize()
+        scale = max(
+            self.media_width / source_width, self.media_height / source_height
+        )
+        width = source_width * scale
+        height = source_height * scale
+        return (
+            (self.media_width - width) / 2.0,
+            (self.media_height - height) / 2.0,
+            width,
+            height,
+        )
+
+
 class Rule(Flowable):
     """Eine haarfeine Linie in einer Palettenfarbe."""
 
@@ -157,6 +215,10 @@ class BookDocTemplate(BaseDocTemplate):
             self.canv.bookmarkPage(key)
             self.canv.addOutlineEntry(flowable.chapter.title, key, level=0)
             self.notify("TOCEntry", (0, flowable.chapter.title, self.page, key))
+        elif isinstance(flowable, ActivityImage) and flowable.title:
+            self.canv.bookmarkPage(flowable.key)
+            self.canv.addOutlineEntry(flowable.title, flowable.key, level=0)
+            self.notify("TOCEntry", (0, flowable.title, self.page, flowable.key))
 
 
 class BookBuilder:
@@ -164,6 +226,11 @@ class BookBuilder:
         self.config = config
         self.library = library or AssetLibrary(
             config.assets_dir, config.asset_aliases, config.asset_captions
+        )
+        # Die Raetselseiten liegen in einem eigenen Ordner und nehmen an der
+        # Stichwort-Zuordnung der Kapitel bewusst nicht teil.
+        self.activities = AssetLibrary(
+            config.activities.directory or config.assets_dir
         )
         self.recorder = ColorRecorder(max_per_page=config.colors.max_per_page)
         self.cache_dir = config.output.parent / ".cache"
@@ -395,11 +462,14 @@ class BookBuilder:
     def _draw_full_bleed_image(self, canvas, reference: str, palette: Palette) -> None:
         """Zeichnet ein Bild formatfuellend ueber die ganze Seite inkl. Anschnitt."""
         asset = self.library.resolve(reference)
+        cover_tritone = self.config.cover.tritone
         prepared = prepare_image(
             asset.path,
             palette,
             self.cache_dir,
-            tritone=self.config.images.tritone,
+            tritone=(
+                self.config.images.tritone if cover_tritone is None else cover_tritone
+            ),
             dither=self.config.images.dither,
             color_space=self.config.printing.color_space,
             jpeg_quality=self.config.printing.jpeg_quality,
@@ -440,10 +510,18 @@ class BookBuilder:
             canvas.setFillColor(self.color(palette.paper))
             canvas.rect(0, 0, media_width, media_height, stroke=0, fill=1)
 
+            if template_id == "activity":
+                # Die Raetselseite traegt Titel und Aufgabe im Bild; eine
+                # Seitenzahl darueber waere nur eine Stoerung.
+                canvas.restoreState()
+                self._crop_marks(canvas)
+                return
+
             if template_id == "cover":
                 cover = self.config.cover
                 if cover.full_page_image and self.config.cover_image:
                     self._draw_full_bleed_image(canvas, str(self.config.cover_image), palette)
+                if cover.full_page_image and cover.typeset_band:
                     band_height = bleed + page.height * cover.band_height_ratio
                     canvas.setFillColor(self.color(palette.paper))
                     canvas.rect(0, 0, media_width, band_height, stroke=0, fill=1)
@@ -531,6 +609,13 @@ class BookBuilder:
             )
             templates.append(
                 PageTemplate(
+                    id=f"{palette.name}-activity",
+                    frames=[frame(f"{palette.name}-activity")],
+                    onPage=self._page_furniture(palette, "activity", running_head=False),
+                )
+            )
+            templates.append(
+                PageTemplate(
                     id=f"{palette.name}-body",
                     frames=[frame(f"{palette.name}-body")],
                     onPage=self._page_furniture(palette, "body", running_head=True),
@@ -540,7 +625,12 @@ class BookBuilder:
 
     # -------------------------------------------------------------- Flowables
     def _image_flowable(
-        self, reference: str, caption: str, palette: Palette, opener: bool = False
+        self,
+        reference: str,
+        caption: str,
+        palette: Palette,
+        opener: bool = False,
+        height_ratio: float | None = None,
     ) -> list:
         asset = self.library.resolve(reference)
         prepared = prepare_image(
@@ -555,7 +645,10 @@ class BookBuilder:
         cfg = self.config.images
         page = self.config.page
         width_ratio = cfg.opener_width_ratio if opener else cfg.width_ratio
-        height_ratio = cfg.opener_max_height_ratio if opener else cfg.max_height_ratio
+        if height_ratio is None:
+            height_ratio = (
+                cfg.opener_max_height_ratio if opener else cfg.max_height_ratio
+            )
         width, height = fit_size(
             prepared,
             page.frame_width * width_ratio,
@@ -569,6 +662,40 @@ class BookBuilder:
             parts.append(Paragraph(caption, self.styles(palette)["caption"]))
         parts.append(Spacer(1, cfg.space_after))
         return [KeepTogether(parts)]
+
+    def _activity_flowables(self, page: ActivityPage, palette: Palette) -> list:
+        """Eine Raetselseite als eigene, randabfallende Seite."""
+        config = self.config
+        asset = self.activities.resolve(page.image)
+        prepared = prepare_image(
+            asset.path,
+            palette,
+            self.cache_dir,
+            # Raetselseiten sind von der Drei-Farben-Regel ausgenommen: sie
+            # bringen ihre eigene Bildwelt mit und faerben nichts am Satz.
+            tritone=config.activities.tritone,
+            dither=config.images.dither,
+            color_space=config.printing.color_space,
+            jpeg_quality=config.printing.jpeg_quality,
+        )
+        media_width, media_height = config.page.media_size
+        self._check_dpi(asset.key, prepared, media_width, media_height)
+        origin = (
+            config.page.bleed + config.page.margin_left,
+            config.page.bleed + config.page.margin_bottom,
+        )
+        flowable = ActivityImage(
+            str(prepared.path),
+            (media_width, media_height),
+            origin,
+            title=page.title if config.activities.in_toc else "",
+            key=f"raetsel-{asset.key}",
+        )
+        return [
+            NextPageTemplate(f"{palette.name}-activity"),
+            PageBreak(),
+            flowable,
+        ]
 
     def _body_flowables(self, chapter: Chapter) -> list:
         styles = self.styles(chapter.palette)
@@ -636,6 +763,10 @@ class BookBuilder:
         palette = config.colors.get(config.cover_palette)
         styles = self.styles(palette)
         page = config.page
+        if not config.cover.typeset_band:
+            # Der Umschlag bringt seine Typografie selbst mit; der Rahmen
+            # bekommt nur einen Platzhalter, damit die Seite entsteht.
+            return [Spacer(1, 1)]
         out: list = [Spacer(1, page.height * config.cover.band_height_ratio * 0.18)]
 
         if not config.cover.full_page_image and config.cover_image:
@@ -678,13 +809,15 @@ class BookBuilder:
     def _chapter_flowables(self, chapter: Chapter) -> list:
         styles = self.styles(chapter.palette)
         page = self.config.page
+        label = chapter_label(chapter.number)
         out: list = [
             NextPageTemplate(f"{chapter.palette.name}-opener"),
             PageBreak(),
             Spacer(1, page.frame_height * 0.05),
-            Paragraph(chapter_label(chapter.number), styles["chapter_number"]),
-            ChapterTitle(chapter.title, styles["chapter_title"], chapter),
         ]
+        if label:
+            out.append(Paragraph(label, styles["chapter_number"]))
+        out.append(ChapterTitle(chapter.title, styles["chapter_title"], chapter))
         if chapter.subtitle:
             out.append(Paragraph(chapter.subtitle, styles["chapter_subtitle"]))
         out.append(Spacer(1, 8))
@@ -698,6 +831,7 @@ class BookBuilder:
                     chapter.assets.hero.caption if self.config.images.captions else "",
                     chapter.palette,
                     opener=True,
+                    height_ratio=chapter.hero_height_ratio,
                 )
             )
         out.append(NextPageTemplate(f"{chapter.palette.name}-body"))
@@ -708,6 +842,13 @@ class BookBuilder:
     def build(self, chapters: list[Chapter] | None = None) -> BuildResult:
         config = self.config
         chapters = chapters if chapters is not None else load_chapters(config, self.library)
+
+        if not len(self.library):
+            # Ein leerer Asset-Ordner baut sonst klaglos ein bildloses Buch.
+            self.warnings.append(
+                f"Der Asset-Ordner {config.assets_dir} enthaelt kein einziges Bild - "
+                "das Buch entsteht ohne Illustrationen."
+            )
 
         for palette in config.colors.palettes.values():
             self.recorder.register_palette(palette.name, palette.as_tuple())
@@ -735,8 +876,29 @@ class BookBuilder:
             story.append(PageBreak())
             story.extend(self._toc_flowables(default_palette))
 
+        activities = config.activities
+        about = load_about(config, self.library)
+
+        def extras(anchor: int, palette: Palette) -> None:
+            """Autorenseite und Raetselseiten hinter Kapitel ``anchor``."""
+            if about is not None and config.about.after == anchor:
+                story.extend(self._chapter_flowables(about))
+            for page in activities.after(anchor):
+                story.extend(self._activity_flowables(page, palette))
+
+        extras(0, default_palette)
         for chapter in chapters:
             story.extend(self._chapter_flowables(chapter))
+            extras(chapter.number, chapter.palette)
+        # Anker hinter dem letzten Kapitel: die Seite schliesst das Buch ab.
+        last = chapters[-1] if chapters else None
+        last_number = last.number if last else 0
+        if about is not None and config.about.after > last_number:
+            story.extend(self._chapter_flowables(about))
+        for page in activities.beyond(last_number):
+            story.extend(
+                self._activity_flowables(page, last.palette if last else default_palette)
+            )
 
         # Der Kolumnentitel folgt dem Kapitel, das auf der Seite beginnt.
         doc.running_head = config.title
