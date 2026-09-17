@@ -7,6 +7,8 @@ Asset — Layout, Typografie und Farben stehen an genau einer Stelle:
 
 ```
 chapters/*.md      ──┐
+seiten/*.md        ──┤
+assets/images/*    ──┤
 beispiele/bilder/* ──┤
 assets/raetsel/*   ──┼──►  buchbauer  ──►  build/rotkaeppchen.pdf
 book.toml          ──┘                      + build/rotkaeppchen-farbreport.json
@@ -69,6 +71,45 @@ Drei Stufen, von der stärksten zur schwächsten Quelle — eine spätere
 [14] Die Rettung   (14-die-rettung.md)
      Kapitelbild: wolf (Quelle: auto, Treffer: 3)
      Illustration: jaeger (Quelle: auto, Treffer: 2)
+```
+
+## Umschlag und Autorenseite
+
+Der Umschlag ist ein fertig gestaltetes Bild: Titel und Verfasser stehen
+darin, deshalb setzt das Buch nichts darüber und reduziert es auch nicht auf
+die Palette.
+
+```toml
+[book]
+cover_image = "rotkaepchen_cover"
+
+[cover]
+full_page_image = true
+typeset_band    = false   # kein Titelfeld - der Umschlag bringt seine Typografie mit
+tritone         = false   # in seinen eigenen Farben
+```
+
+Vor dem ersten Kapitel steht die Seite über die Verfasser. Ihr Text liegt in
+[`seiten/ueber-die-gebrueder-grimm.md`](seiten/ueber-die-gebrueder-grimm.md) —
+eine ganz normale Kapitel-Datei mit Frontmatter, nur ohne Nummer: im
+Inhaltsverzeichnis steht sie, eine Zeile „Erstes Kapitel“ bekommt sie nicht.
+
+```toml
+[about]
+enabled = true
+file    = "seiten/ueber-die-gebrueder-grimm.md"
+after   = 0      # 0 = vor dem ersten Kapitel
+image_height_ratio = 0.26
+```
+
+## Mehrere Asset-Ordner
+
+`book.assets_dir` nimmt auch eine Liste. Der **erste Ordner gewinnt**, die
+folgenden steuern bei, was er nicht hat — so ersetzen die echten
+Illustrationen die Platzhalter Datei für Datei:
+
+```toml
+assets_dir = ["assets/images", "beispiele/bilder"]
 ```
 
 ## Mitmach-Seiten
@@ -172,18 +213,17 @@ Alles in `book.toml`, mit Kommentar an jedem Schlüssel:
 Issue #1 (Sprint 1) ist erfüllt: der Builder liest alle Kapitel eines
 Ordners, ordnet die Assets automatisch zu, erzeugt **eine** PDF-Datei, hält
 die Drei-Farben-Regel nachweisbar ein und hält alle Layout-Parameter
-zentral. Aus den 15 Kapiteln in `chapters/` und den drei Rätselseiten in
-`assets/raetsel/` entsteht ein Buch mit 36 Seiten; 69 Tests decken die
-Bausteine ab.
+zentral. Aus den 15 Kapiteln in `chapters/`, der Autorenseite in `seiten/` und den
+drei Rätselseiten in `assets/raetsel/` entsteht ein Buch mit 37 Seiten.
 
 Aus Issue #4 sind Anschnitt, Schnittmarken, CMYK und die 300-dpi-Prüfung
 vorhanden; Rechtschreibprüfung und Probedruck stehen aus.
 
-Die Illustrationen unter `beispiele/bilder/` sind **Platzhalter** aus
-`tools/make_placeholder_assets.py`. Die echten Bilder aus Issue #6 gehören
-nach [`assets/images/`](assets/images) — dort steht, welche Dateinamen und
-welche Auflösung erwartet werden. Danach zeigt `book.assets_dir` in
-`book.toml` dorthin; das ist eine Zeile, sonst ändert sich nichts.
+In [`assets/images/`](assets/images) liegen bereits das Umschlagbild und das
+Bild der Gebrüder Grimm; die übrigen Illustrationen sind noch **Platzhalter**
+aus `tools/make_placeholder_assets.py` unter `beispiele/bilder/`. Beide Ordner
+stehen in `book.assets_dir` — jedes echte Bild ersetzt seinen Platzhalter
+allein dadurch, dass es unter demselben Dateinamen in `assets/images/` liegt.
 
 Issue #6 nimmt Bilder ausdrücklich von der Drei-Farben-Regel aus — dafür
 genügt `images.tritone = false`; für die Rätselseiten ist das bereits der

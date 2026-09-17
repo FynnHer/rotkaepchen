@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import re
 import unicodedata
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -73,20 +74,33 @@ class AssetLibrary:
 
     def __init__(
         self,
-        directory: Path,
+        directory: Path | Sequence[Path],
         aliases: dict[str, list[str]] | None = None,
         captions: dict[str, str] | None = None,
     ):
-        self.directory = Path(directory)
+        # Mehrere Ordner sind erlaubt: der erste gewinnt. So koennen echte
+        # Illustrationen die Platzhalter einzeln ersetzen, ohne dass beide
+        # Saetze vollstaendig sein muessen.
+        if isinstance(directory, (str, Path)):
+            directory = [directory]
+        self.directories = tuple(Path(d) for d in directory)
         self._aliases = aliases or {}
         self._captions = captions or {}
         self.assets: dict[str, Asset] = {}
         self._scan()
 
+    @property
+    def directory(self) -> Path:
+        """Der erste Ordner - Ziel fuer Pfadangaben und Fehlermeldungen."""
+        return self.directories[0] if self.directories else Path(".")
+
     def _scan(self) -> None:
-        if not self.directory.is_dir():
-            return
-        for path in sorted(self.directory.iterdir()):
+        for directory in self.directories:
+            if directory.is_dir():
+                self._scan_directory(directory)
+
+    def _scan_directory(self, directory: Path) -> None:
+        for path in sorted(directory.iterdir()):
             if path.suffix.lower() not in IMAGE_SUFFIXES or not path.is_file():
                 continue
             key = slugify(path.stem)
@@ -116,9 +130,10 @@ class AssetLibrary:
         key = slugify(Path(reference).stem if "/" in reference or "." in reference else reference)
         if key in self.assets:
             return self.assets[key]
-        candidate = (self.directory / reference).resolve()
-        if candidate.is_file():
-            return Asset(key=key or candidate.stem, path=candidate)
+        for directory in self.directories:
+            candidate = (directory / reference).resolve()
+            if candidate.is_file():
+                return Asset(key=key or candidate.stem, path=candidate)
         raise AssetError(
             f"Bild {reference!r} nicht gefunden. "
             f"Bekannte Assets: {sorted(self.assets) or '(keine)'}"

@@ -1,17 +1,20 @@
 # Bild-Assets
 
-Hier liegen die **echten** Illustrationen des Buches. Der Ordner ist noch
-leer — bis die Bilder aus Issue #6 vorliegen, baut das Buch mit den
-Platzhaltern aus [`beispiele/bilder/`](../../beispiele/bilder).
+Hier liegen die **echten** Illustrationen des Buches. Vorhanden sind bisher
+das Umschlagbild und das Bild der Gebrüder Grimm; alles Übrige kommt noch aus
+den Platzhaltern in [`beispiele/bilder/`](../../beispiele/bilder).
 
-## Umstellen
+## Beide Ordner zugleich
 
-Eine Zeile in [`book.toml`](../../book.toml):
+[`book.toml`](../../book.toml) nennt beide, der erste gewinnt:
 
 ```toml
 [book]
-assets_dir = "assets/images"
+assets_dir = ["assets/images", "beispiele/bilder"]
 ```
+
+Ein echtes Bild ersetzt seinen Platzhalter also allein dadurch, dass es unter
+demselben Dateinamen hier liegt — `wolf.png` hier schlägt `wolf.png` dort.
 
 ## Dateinamen sind die Schnittstelle
 
@@ -25,7 +28,8 @@ Erwartet werden derzeit:
 
 | Datei | Verwendung |
 | --- | --- |
-| `titelbild.png` | Umschlag, randabfallend über die ganze Seite (Hochformat) |
+| `rotkaepchen_cover.png` | Umschlag, randabfallend über die ganze Seite (vorhanden) |
+| `gebruedergrim_infobild.png` | Seite über die Verfasser (vorhanden) |
 | `rotkaeppchen.png` | Kapitelbild und Illustration |
 | `wolf.png` | Kapitelbild und Illustration |
 | `grossmutter.png` | Kapitelbild und Illustration |

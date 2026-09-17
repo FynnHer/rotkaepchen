@@ -9,7 +9,7 @@ from .assets import AssetLibrary, ChapterAssets, slugify
 from .config import BookConfig, Palette
 from .markdown import Block, Document, parse_file
 
-__all__ = ["Chapter", "load_chapters", "place_images"]
+__all__ = ["Chapter", "load_about", "load_chapters", "place_images"]
 
 
 @dataclass
@@ -23,6 +23,8 @@ class Chapter:
     palette: Palette
     assets: ChapterAssets = field(default_factory=ChapterAssets)
     body: list[Block] = field(default_factory=list)
+    # Ueberschreibt die Hoehe des Kapitelbildes fuer diese eine Seite.
+    hero_height_ratio: float | None = None
 
     @property
     def running_head(self) -> str:
@@ -143,3 +145,41 @@ def load_chapters(config: BookConfig, library: AssetLibrary | None = None) -> li
         )
         chapters.append(chapter)
     return chapters
+
+
+def load_about(config: BookConfig, library: AssetLibrary | None = None) -> Chapter | None:
+    """Liest die Autorenseite - ein Kapitel ohne Nummer.
+
+    Sie nimmt an der Stichwort-Automatik nicht teil: ihr Bild steht im
+    Frontmatter oder im Markdown, sonst bleibt die Seite ohne Bild.
+    """
+    about = config.about
+    if not about.enabled or about.file is None:
+        return None
+
+    library = library or AssetLibrary(
+        config.assets_dir, config.asset_aliases, config.asset_captions
+    )
+    document = parse_file(about.file)
+    title = _title_of(document, about.file)
+    body = [b for b in document.blocks if not (b.kind == "heading" and b.level == 1)]
+    explicit = [b.src for b in body if b.kind == "image"]
+    matched = library.match_chapter(
+        text="",
+        meta=document.meta,
+        title="",
+        explicit_refs=explicit,
+        max_auto_inline=0,
+    )
+    return Chapter(
+        number=0,
+        title=title,
+        subtitle=str(document.meta.get("subtitle", document.meta.get("untertitel", ""))),
+        slug=slugify(title),
+        source=about.file,
+        document=document,
+        palette=config.colors.get(about.palette),
+        assets=matched,
+        body=place_images(body, matched),
+        hero_height_ratio=about.image_height_ratio,
+    )
