@@ -6,7 +6,8 @@ palette: hearth
 ---
 
 Es war einmal ein kleines Kind mit einem **roten Käppchen**.
-Das Käppchen hatte es von seiner Oma bekommen, und es trug es jeden Tag.
+Das Käppchen hatte es von seiner Oma bekommen, und es trug es jeden Tag. 
+Das Käppchen schütze es vor allen Gefahren.
 Alle nannten es nur noch Rotkäppchen.
 
 Rotkäppchen wohnte mit seiner Mama in einem kleinen Haus am **Waldrand**.
