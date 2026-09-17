@@ -2,7 +2,7 @@
 title: Der helle Wald
 subtitle: Von singenden Vögeln und einem freundlichen Morgen
 order: 4
-palette: hearth
+palette: wald
 ---
 
 Der **Wald** war hell und freundlich an diesem Morgen.

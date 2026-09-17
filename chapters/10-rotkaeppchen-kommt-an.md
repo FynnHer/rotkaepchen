@@ -2,7 +2,7 @@
 title: Rotkäppchen kommt an
 subtitle: Von einem Klopfen, einem Ruf und einer offenen Tür
 order: 10
-palette: hearth
+palette: daemmer
 ---
 
 Rotkäppchen kam am Haus der Oma an.

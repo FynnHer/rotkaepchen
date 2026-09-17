@@ -2,7 +2,7 @@
 title: Der Ruf um Hilfe
 subtitle: Von einem lauten Ruf und einem aufmerksamen Jäger
 order: 13
-palette: hearth
+palette: daemmer
 ---
 
 Der Wolf sprang aus dem Bett und schnappte nach Rotkäppchen.

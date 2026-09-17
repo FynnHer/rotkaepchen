@@ -2,7 +2,7 @@
 title: Die fünf Blumen
 subtitle: Von einer roten, gelben, blauen, weißen und lila Blume
 order: 5
-palette: hearth
+palette: wald
 ---
 
 Neben dem Weg wuchsen bunte **Blumen** im Gras.

@@ -2,7 +2,7 @@
 title: Die großen Augen
 subtitle: Von einem merkwürdigen Besuch am Bett der Oma
 order: 11
-palette: hearth
+palette: daemmer
 ---
 
 Rotkäppchen trat näher ans Bett und schaute genau hin.

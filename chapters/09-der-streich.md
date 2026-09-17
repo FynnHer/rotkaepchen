@@ -2,7 +2,7 @@
 title: Der Streich
 subtitle: Von einer versteckten Oma und einer listigen Verkleidung
 order: 9
-palette: hearth
+palette: daemmer
 ---
 
 Der Wolf spielte der Oma einen **Streich**.

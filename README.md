@@ -1,7 +1,8 @@
 # Rotkäppchen — Buchbauer
 
 Ein Werkzeug, das aus einzelnen Markdown-Kapiteln ein **druckfertiges,
-dreifarbiges PDF-Buch** setzt. Jedes Kapitel ist eine Datei, jedes Bild ein
+seitenweise dreifarbiges PDF-Buch** setzt — mit drei Papiertönen, die mit dem
+Ort der Handlung wechseln. Jedes Kapitel ist eine Datei, jedes Bild ein
 Asset — Layout, Typografie und Farben stehen an genau einer Stelle:
 [`book.toml`](book.toml).
 
@@ -153,7 +154,9 @@ gilt auf diesen Seiten weiterhin für Papier und Schnittmarken.
 
 Eine Palette hat **genau drei Rollen** — `paper`, `ink`, `accent`. Mehr sieht
 die Konfiguration nicht vor, deshalb kann eine Seite die Regel gar nicht erst
-verletzen. Zusätzlich gilt:
+verletzen. Mehrere Paletten dürfen sich unterscheiden — die Drei-Farben-Regel
+gilt je Seite, nicht je Buch (siehe [Drei
+Seitenhintergründe](#drei-seitenhintergründe)). Zusätzlich gilt:
 
 | Regel | Schlüssel | Wirkung |
 | --- | --- | --- |
@@ -171,6 +174,34 @@ Das Ergebnis landet in `build/rotkaeppchen-farbreport.json`:
 Illustrationen bringen keine vierte Farbe mit: solange `images.tritone`
 aktiv ist, wird jedes Bild vor dem Einbetten auf die drei Palettenfarben
 reduziert (Floyd-Steinberg-Rasterung erhält dabei die Mitteltöne).
+
+## Drei Seitenhintergründe
+
+Der Papierton wechselt mit dem Ort der Handlung. Es gibt genau **drei**
+Hintergründe; `ink` und `accent` bleiben in allen gleich, sodass eine Seite
+nach wie vor nur drei Farben trägt — im ganzen Buch sind es fünf
+(`colors.max_total = 5`).
+
+| Palette | `paper` | steht für | Kapitel |
+| --- | --- | --- | --- |
+| `hearth` | `#F4ECDC` warmes Pergament | Dorf und Zuhause | 1–3, 15 |
+| `wald` | `#E4EFD3` helles Blattgrün | der Weg durch den Wald | 4–7 |
+| `daemmer` | `#D9E1EA` kühles Dämmerblau | das Haus der Großmutter | 8–14 |
+
+Die Geschichte läuft damit von warm über grün nach kühl und am Schluss
+zurück ins Warme: Kapitel 15 steht wieder auf dem Pergamentton des Anfangs.
+Alle drei Töne halten gegen `ink` mindestens ein Kontrastverhältnis von 9:1.
+
+Welches Kapitel welche Palette bekommt, steht in seinem Frontmatter —
+`palette: wald` — wie schon `hero:`. Ohne Eintrag gilt `colors.rotate`,
+sonst `colors.default_palette`. Die Autorenseite und das Inhaltsverzeichnis
+stehen auf `hearth`, die Rätselseiten übernehmen die Palette des Kapitels,
+hinter dem sie liegen.
+
+Der Hintergrund färbt auch die Bilder: jede Illustration wird auf die
+Palette **ihres** Kapitels reduziert, nimmt den Papierton also auf. Ein
+Bild, das in zwei Kapiteln mit verschiedenen Paletten steht, wird zweimal
+aufbereitet und getrennt zwischengespeichert.
 
 ## Druckvorstufe
 
@@ -212,7 +243,7 @@ Alles in `book.toml`, mit Kommentar an jedem Schlüssel:
 
 Issue #1 (Sprint 1) ist erfüllt: der Builder liest alle Kapitel eines
 Ordners, ordnet die Assets automatisch zu, erzeugt **eine** PDF-Datei, hält
-die Drei-Farben-Regel nachweisbar ein und hält alle Layout-Parameter
+die Drei-Farben-Regel je Seite nachweisbar ein und hält alle Layout-Parameter
 zentral. Aus den 15 Kapiteln in `chapters/`, der Autorenseite in `seiten/` und den
 drei Rätselseiten in `assets/raetsel/` entsteht ein Buch mit 37 Seiten.
 
