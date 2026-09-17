@@ -141,7 +141,10 @@ Aus Issue #4 sind Anschnitt, Schnittmarken, CMYK und die 300-dpi-Prüfung
 vorhanden; Rechtschreibprüfung und Probedruck stehen aus.
 
 Die Illustrationen unter `beispiele/bilder/` sind **Platzhalter** aus
-`tools/make_placeholder_assets.py`. Echte Bilder kommen in einen eigenen
-Ordner; danach zeigt `book.assets_dir` in `book.toml` dorthin — eine Zeile,
-sonst ändert sich nichts (Issue #6). Issue #6 nimmt Bilder ausdrücklich von
-der Drei-Farben-Regel aus — dafür genügt `images.tritone = false`.
+`tools/make_placeholder_assets.py`. Die echten Bilder aus Issue #6 gehören
+nach [`assets/images/`](assets/images) — dort steht, welche Dateinamen und
+welche Auflösung erwartet werden. Danach zeigt `book.assets_dir` in
+`book.toml` dorthin; das ist eine Zeile, sonst ändert sich nichts.
+
+Issue #6 nimmt Bilder ausdrücklich von der Drei-Farben-Regel aus — dafür
+genügt `images.tritone = false`.

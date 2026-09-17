@@ -49,6 +49,8 @@ def _inspect(config) -> int:
     print(f"Konfiguration : {config.root}")
     print(f"Kapitel-Ordner: {config.chapters_dir}")
     print(f"Asset-Ordner  : {config.assets_dir}  ({len(library)} Bilder)")
+    if not len(library):
+        print("     ! kein einziges Bild - das Buch entstuende ohne Illustrationen")
     print(f"Ausgabe       : {config.output}")
     print()
     for chapter in chapters:

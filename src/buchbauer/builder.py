@@ -709,6 +709,13 @@ class BookBuilder:
         config = self.config
         chapters = chapters if chapters is not None else load_chapters(config, self.library)
 
+        if not len(self.library):
+            # Ein leerer Asset-Ordner baut sonst klaglos ein bildloses Buch.
+            self.warnings.append(
+                f"Der Asset-Ordner {config.assets_dir} enthaelt kein einziges Bild - "
+                "das Buch entsteht ohne Illustrationen."
+            )
+
         for palette in config.colors.palettes.values():
             self.recorder.register_palette(palette.name, palette.as_tuple())
 
