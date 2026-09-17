@@ -3,6 +3,7 @@ title: Der helle Wald
 subtitle: Von singenden Vögeln und einem freundlichen Morgen
 order: 4
 palette: wald
+hero: Kapitel 4
 ---
 
 Der **Wald** war hell und freundlich an diesem Morgen.

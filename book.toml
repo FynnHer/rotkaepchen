@@ -77,13 +77,13 @@ width_ratio             = 1.08   # Anteil der Satzspiegelbreite
 max_height_ratio        = 0.52   # Anteil der Satzspiegelhoehe
 opener_width_ratio      = 1.16   # Kapitelbild auf dem Aufschlag
 opener_max_height_ratio = 0.46
-tritone                 = true   # Bilder auf die Kapitelpalette reduzieren
-dither                  = true   # Rasterung: erhaelt Mitteltoene, die drei Farben allein nicht abbilden
+tritone                 = false  # Illustrationen bleiben, wie sie sind - eigene Bildwelt, wie Umschlag und Raetselseiten
+dither                  = true   # nur wirksam, wenn tritone wieder eingeschaltet wird
 space_before_mm         = 6.0
 space_after_mm          = 4.0
 captions                = true
 auto_min_score          = 1    # Stichwort-Treffer, ab denen automatisch illustriert wird
-max_auto_illustrations  = 1    # zusaetzliche Automatik-Bilder je Kapitel (ohne Kapitelbild)
+max_auto_illustrations  = 0    # jedes Kapitel bringt sein eigenes Bild mit - keine Automatik
 title_weight            = 5    # Gewicht eines Stichwort-Treffers im Kapiteltitel
 
 [colors]
@@ -104,9 +104,10 @@ rotate          = []       # Reihum-Verteilung; hier waehlt jedes Kapitel selbst
 #   wald     der Weg durch den Wald    Kapitel 4-7
 #   daemmer  das Haus der Grossmutter  Kapitel 8-14
 #
-# Jede Palette besteht aus genau drei Rollen. Die Illustrationen werden auf
-# die Palette ihres Kapitels reduziert (images.tritone) und nehmen den
-# Papierton damit auf.
+# Jede Palette besteht aus genau drei Rollen und gilt fuer Satz und
+# Seitengrund. Die Illustrationen sind davon ausgenommen
+# (images.tritone = false) und bringen ihre eigenen Farben mit - wie der
+# Umschlag und die Raetselseiten.
 [colors.palettes.hearth]
 paper  = "#F4ECDC"   # warmer Pergamentton - Dorf, Zuhause, gutes Ende
 ink    = "#2A3B2E"   # Waldgruen, dunkel
@@ -133,6 +134,9 @@ palette = "hearth"   # wie das Dorf - die Seite steht vor dem ersten Kapitel
 file    = "seiten/ueber-die-gebrueder-grimm.md"
 after   = 0
 image_height_ratio = 0.26   # so stehen Bild und Text auf einer Seite
+# Die beiden Werbe-Umschlaege im Fliesstext der Seite: kleiner als eine
+# Kapitel-Illustration, damit beide zusammen auf eine Seite passen.
+body_image_height_ratio = 0.30
 
 # ---------------------------------------------------------------------------
 # Mitmach-Seiten. Die Raetselseiten liegen in einem eigenen Ordner, sie
@@ -176,6 +180,28 @@ wald         = ["Wald", "Bäume", "Tannen", "Dickicht", "Gehölz"]
 titelbild    = []   # nur fuer den Umschlag, nie automatisch zugeordnet
 rotkaepchen-cover = []       # Umschlagbild
 gebruedergrim-infobild = []  # nur auf der Seite ueber die Verfasser
+
+# Die 15 Kapitelbilder und die beiden Werbeseiten stehen fest im
+# Frontmatter ihrer Seite ("hero:" bzw. "![...](werbung_...)"). Leere
+# Aliaslisten halten sie aus der Stichwort-Automatik heraus - sonst
+# koennte ein Kapitel das Bild eines anderen einsammeln.
+kapitel-1  = []
+kapitel-2  = []
+kapitel-3  = []
+kapitel-4  = []
+kapitel-5  = []
+kapitel-6  = []
+kapitel-7  = []
+kapitel-8  = []
+kapitel-9  = []
+kapitel-10 = []
+kapitel-11 = []
+kapitel-12 = []
+kapitel-13 = []
+kapitel-14 = []
+kapitel-15 = []
+werbung-wolf           = []  # nur auf der Seite ueber die Verfasser
+werbung-schneewittchen = []  # nur auf der Seite ueber die Verfasser
 
 # Bildunterschriften. Ohne Eintrag bleibt eine Illustration unbeschriftet;
 # ein ![Text](wolf) im Markdown hat immer Vorrang.

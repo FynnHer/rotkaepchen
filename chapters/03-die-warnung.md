@@ -3,6 +3,7 @@ title: Die Warnung
 subtitle: Von Mamas wichtigen Worten und einem Versprechen
 order: 3
 palette: hearth
+hero: Kapitel 3
 ---
 
 Mama kniete sich hin und sah Rotkäppchen in die Augen.

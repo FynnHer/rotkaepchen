@@ -3,6 +3,7 @@ title: Die fünf Blumen
 subtitle: Von einer roten, gelben, blauen, weißen und lila Blume
 order: 5
 palette: wald
+hero: Kapitel 5
 ---
 
 Neben dem Weg wuchsen bunte **Blumen** im Gras.

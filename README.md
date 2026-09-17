@@ -100,7 +100,20 @@ Inhaltsverzeichnis steht sie, eine Zeile „Erstes Kapitel“ bekommt sie nicht.
 enabled = true
 file    = "seiten/ueber-die-gebrueder-grimm.md"
 after   = 0      # 0 = vor dem ersten Kapitel
-image_height_ratio = 0.26
+image_height_ratio = 0.26        # das Bild im Kopf der Seite
+body_image_height_ratio = 0.30   # die Bilder im Fliesstext
+```
+
+Hinter dem Text der Seite steht die Werbung für die anderen Bände: zwei
+Umschläge als gewöhnliche Markdown-Bilder. `body_image_height_ratio` hält
+sie klein genug, dass beide zusammen auf eine Seite passen.
+
+```markdown
+## Mehr von den Brüdern Grimm
+
+![Schneewittchen](werbung_schneewittchen)
+
+![Der Wolf und die sieben Geißlein](werbung_wolf)
 ```
 
 ## Mehrere Asset-Ordner
@@ -171,9 +184,12 @@ Das Ergebnis landet in `build/rotkaeppchen-farbreport.json`:
 { "page": 5, "palette": "buch", "colors": ["#2a3b2e", "#a81e2d", "#f4ecdc"], "count": 3 }
 ```
 
-Illustrationen bringen keine vierte Farbe mit: solange `images.tritone`
-aktiv ist, wird jedes Bild vor dem Einbetten auf die drei Palettenfarben
-reduziert (Floyd-Steinberg-Rasterung erhält dabei die Mitteltöne).
+Die Messung zählt gesetzte Farben, keine Bildpixel. Die Illustrationen sind
+deshalb von der Regel ausgenommen (`images.tritone = false`) und behalten
+ihre eigenen Farben — wie der Umschlag (`cover.tritone`) und die
+Rätselseiten (`activities.tritone`). Wer sie doch auf die drei
+Palettenfarben reduzieren will, setzt `images.tritone = true`; die
+Floyd-Steinberg-Rasterung (`images.dither`) erhält dabei die Mitteltöne.
 
 ## Drei Seitenhintergründe
 
@@ -250,15 +266,21 @@ drei Rätselseiten in `assets/raetsel/` entsteht ein Buch mit 37 Seiten.
 Aus Issue #4 sind Anschnitt, Schnittmarken, CMYK und die 300-dpi-Prüfung
 vorhanden; Rechtschreibprüfung und Probedruck stehen aus.
 
-In [`assets/images/`](assets/images) liegen bereits das Umschlagbild und das
-Bild der Gebrüder Grimm; die übrigen Illustrationen sind noch **Platzhalter**
-aus `tools/make_placeholder_assets.py` unter `beispiele/bilder/`. Beide Ordner
-stehen in `book.assets_dir` — jedes echte Bild ersetzt seinen Platzhalter
-allein dadurch, dass es unter demselben Dateinamen in `assets/images/` liegt.
+In [`assets/images/`](assets/images) liegen das Umschlagbild, das Bild der
+Gebrüder Grimm, die beiden Werbe-Umschläge und **je ein Bild pro Kapitel**
+(`Kapitel 1.jpeg` … `Kapitel 15.jpeg`). Jedes Kapitel benennt seines im
+Frontmatter (`hero: Kapitel 5`); die Stichwort-Automatik ist damit
+arbeitslos und `images.max_auto_illustrations = 0` schaltet sie ab. Die
+Platzhalter aus `tools/make_placeholder_assets.py` unter `beispiele/bilder/`
+stehen weiterhin in `book.assets_dir`, kommen aber nicht mehr ins Buch.
 
-Issue #6 nimmt Bilder ausdrücklich von der Drei-Farben-Regel aus — dafür
-genügt `images.tritone = false`; für die Rätselseiten ist das bereits der
-Standard (`activities.tritone = false`).
+Die Kapitelbilder liegen bei rund 240 px Kantenlänge und damit bei 59–80 dpi
+im Endformat — der Bau warnt für jedes einzelne. Für den Druck brauchen sie
+Vorlagen in 300 dpi.
+
+Issue #6 nimmt Bilder ausdrücklich von der Drei-Farben-Regel aus: das ist
+mit `images.tritone = false` umgesetzt, für die Rätselseiten war es schon
+vorher der Standard (`activities.tritone = false`).
 
 Aus Issue #5 sind die spielerischen Aktivitäten eingebaut: drei
 Mitmach-Seiten, verteilt über die Geschichte. Ihre Vorlagen liegen bei

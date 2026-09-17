@@ -3,6 +3,7 @@ title: Die großen Zähne
 subtitle: Von Ohren, Zähnen und einer Erkenntnis
 order: 12
 palette: daemmer
+hero: Kapitel 12
 ---
 
 "Oma, was hast du für **große Ohren**!", sagte Rotkäppchen.

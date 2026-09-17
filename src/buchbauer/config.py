@@ -238,6 +238,9 @@ class AboutConfig:
     # Anteil der Satzspiegelhoehe fuer das Bild. Kleiner als bei einem
     # Kapitelaufschlag, damit Bild und Text auf eine Seite passen.
     image_height_ratio: float = 0.34
+    # Dasselbe fuer die Bilder im Fliesstext der Seite - die beiden
+    # Werbe-Umschlaege sollen zu zweit auf eine Seite passen.
+    body_image_height_ratio: float | None = None
 
 
 @dataclass(frozen=True)
@@ -393,6 +396,7 @@ DEFAULTS: dict[str, Any] = {
         "after": 0,
         "palette": None,
         "image_height_ratio": 0.34,
+        "body_image_height_ratio": None,
     },
     "activities": {
         "enabled": True,
@@ -450,6 +454,9 @@ def _build_about(raw: dict[str, Any], root: Path, colors: ColorConfig) -> AboutC
         after=after,
         palette=str(palette) if palette else None,
         image_height_ratio=float(raw.get("image_height_ratio", 0.34)),
+        body_image_height_ratio=(
+            float(body) if (body := raw.get("body_image_height_ratio")) else None
+        ),
     )
 
 

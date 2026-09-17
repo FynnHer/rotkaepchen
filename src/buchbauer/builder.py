@@ -723,7 +723,13 @@ class BookBuilder:
                     out.append(Paragraph(item, styles["list"], bulletText="–"))
             elif block.kind == "image":
                 out.extend(
-                    self._image_flowable(block.src, block.alt, palette, opener=False)
+                    self._image_flowable(
+                        block.src,
+                        block.alt,
+                        palette,
+                        opener=False,
+                        height_ratio=chapter.body_height_ratio,
+                    )
                 )
             elif block.kind == "break":
                 out.append(Spacer(1, self.config.typography.body_size * 0.7))

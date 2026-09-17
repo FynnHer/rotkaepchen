@@ -3,6 +3,7 @@ title: Der Korb
 subtitle: Von drei Dingen, die Mama sorgfältig einpackt
 order: 2
 palette: hearth
+hero: Kapitel 2
 ---
 
 Mama packte einen **Korb** für die Oma.

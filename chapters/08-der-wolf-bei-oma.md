@@ -3,6 +3,7 @@ title: Der Wolf bei Oma
 subtitle: Von einem ungebetenen Gast an der Haustür
 order: 8
 palette: daemmer
+hero: Kapitel 8
 ---
 
 Der Wolf lief schnell durch den Wald, viel schneller als Rotkäppchen.

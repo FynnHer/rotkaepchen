@@ -3,6 +3,7 @@ title: Rotkäppchen
 subtitle: Von einem roten Käppchen und einem kleinen Kind am Waldrand
 order: 1
 palette: hearth
+hero: Kapitel 1
 ---
 
 Es war einmal ein kleines Kind mit einem **roten Käppchen**.

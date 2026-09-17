@@ -156,3 +156,22 @@ class TestBuiltBook:
         result = self._build(book_config)
         pdf = pdfium.PdfDocument(str(result.output))
         assert "Testbuch" in pdf[0].get_textpage().get_text_range()
+
+
+def test_body_image_height_ratio_reaches_the_page(about_book: Path):
+    """Die Werbe-Umschlaege im Fliesstext bekommen ihre eigene Hoehe."""
+    toml = about_book / "book.toml"
+    toml.write_text(
+        toml.read_text(encoding="utf-8") + "body_image_height_ratio = 0.30\n",
+        encoding="utf-8",
+    )
+    config = load_config(toml)
+    assert config.about.body_image_height_ratio == pytest.approx(0.30)
+    about = load_about(config)
+    assert about is not None
+    assert about.body_height_ratio == pytest.approx(0.30)
+
+
+def test_without_the_setting_body_images_keep_the_usual_height(about_book: Path):
+    about = load_about(load_config(about_book / "book.toml"))
+    assert about is not None and about.body_height_ratio is None
