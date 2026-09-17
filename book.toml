@@ -12,7 +12,7 @@ chapters_dir  = "chapters"        # Ordner mit den Kapitel-Markdown-Dateien
 assets_dir    = "assets/images"   # Ordner mit den Bild-Assets
 output        = "build/rotkaeppchen.pdf"
 cover_image   = "titelbild"       # Asset-Schluessel fuer die Titelseite
-cover_palette = "buch"
+cover_palette = "hearth"
 
 [print]
 # Druckvorstufe. bleed_mm ist der Anschnitt, um den die PDF-Seite ueber das
@@ -78,7 +78,7 @@ dither                  = true   # Rasterung: erhaelt Mitteltoene, die drei Farb
 space_before_mm         = 6.0
 space_after_mm          = 4.0
 captions                = true
-auto_min_score          = 3    # Stichwort-Treffer, ab denen automatisch illustriert wird
+auto_min_score          = 1    # Stichwort-Treffer, ab denen automatisch illustriert wird
 max_auto_illustrations  = 1    # zusaetzliche Automatik-Bilder je Kapitel (ohne Kapitelbild)
 title_weight            = 5    # Gewicht eines Stichwort-Treffers im Kapiteltitel
 
@@ -86,12 +86,12 @@ title_weight            = 5    # Gewicht eines Stichwort-Treffers im Kapiteltite
 max_per_page    = 3        # Farben je Seite, wird nach dem Bau geprueft
 max_total       = 3        # Farben im ganzen Buch - der Druck laeuft 3-farbig
 paper_counts    = true     # der Papierton zaehlt als eine der drei Farben
-default_palette = "buch"
+default_palette = "hearth"
 rotate          = []       # spaeter: je Seite/Kapitel eine eigene Palette
 
 # Eine Palette besteht aus genau drei Rollen. Solange max_total = 3 gilt,
 # duerfen weitere Paletten nur dieselben drei Farben anders verteilen.
-[colors.palettes.buch]
+[colors.palettes.hearth]
 paper  = "#F4ECDC"   # warmer Pergamentton
 ink    = "#2A3B2E"   # Waldgruen, dunkel
 accent = "#A81E2D"   # Rotkaeppchen-Rot

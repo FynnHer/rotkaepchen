@@ -30,15 +30,17 @@ python3 -m venv .venv
 
 ```markdown
 ---
-title: Begegnung mit dem Wolf
-subtitle: Wie ein höfliches Wort den kürzesten Weg verlegt
-order: 2
-hero: wolf          # optional — sonst sucht der Builder das Bild selbst
+title: Die fünf Blumen
+subtitle: Von einer roten, gelben, blauen, weißen und lila Blume
+order: 5
+palette: hearth
+hero: rotkaeppchen   # optional — sonst sucht der Builder das Bild selbst
 ---
 
-Wie nun Rotkäppchen in den Wald kam, begegnete ihm der Wolf.
+Neben dem Weg wuchsen bunte **Blumen** im Gras.
+Rotkäppchen stellte den Korb ab und pflückte fünf davon.
 
-> Guten Tag, Rotkäppchen.
+> Eine rote, eine gelbe, eine blaue, eine weiße und eine lila Blume.
 
 ---
 
@@ -63,9 +65,9 @@ Drei Stufen, von der stärksten zur schwächsten Quelle — eine spätere
 `buchbauer inspect` zeigt, was der Builder entschieden hat — samt Trefferzahl:
 
 ```
-[2] Begegnung mit dem Wolf   (02-begegnung-mit-dem-wolf.md)
-     Kapitelbild: wolf (Quelle: auto, Treffer: 10)
-     Illustration: grossmutter (Quelle: auto, Treffer: 5)
+[14] Die Rettung   (14-die-rettung.md)
+     Kapitelbild: wolf (Quelle: auto, Treffer: 3)
+     Illustration: jaeger (Quelle: auto, Treffer: 2)
 ```
 
 ## Das Farbsystem
@@ -131,8 +133,9 @@ Alles in `book.toml`, mit Kommentar an jedem Schlüssel:
 
 Issue #1 (Sprint 1) ist erfüllt: der Builder liest alle Kapitel eines
 Ordners, ordnet die Assets automatisch zu, erzeugt **eine** PDF-Datei, hält
-die Drei-Farben-Regel nachweisbar ein, hält alle Layout-Parameter zentral
-und ist mit drei Beispielkapiteln durchgetestet (59 Tests).
+die Drei-Farben-Regel nachweisbar ein und hält alle Layout-Parameter
+zentral. Aus den 15 Kapiteln in `chapters/` entsteht ein Buch mit 33
+Seiten; 59 Tests decken die Bausteine ab.
 
 Aus Issue #4 sind Anschnitt, Schnittmarken, CMYK und die 300-dpi-Prüfung
 vorhanden; Rechtschreibprüfung und Probedruck stehen aus.
