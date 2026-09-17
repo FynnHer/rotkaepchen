@@ -62,18 +62,24 @@ def prepare_image(
     color_space: str = "rgb",
     jpeg_quality: int = 95,
 ) -> PreparedImage:
-    """Bereitet ein Asset fuer eine Kapitelpalette auf."""
+    """Bereitet ein Asset fuer eine Kapitelpalette auf.
+
+    Ohne ``tritone`` bleibt die Bildwelt erhalten (Raetselseiten sind von
+    der Drei-Farben-Regel ausgenommen); der Farbraum wird trotzdem auf den
+    konfigurierten umgestellt.
+    """
     source = Path(source)
     colors = palette.rgb_tuple()
 
-    if not tritone:
+    cmyk = color_space == "cmyk"
+    if not tritone and not cmyk:
+        # Weder Reduktion noch Farbraumwechsel - die Datei kann so bleiben.
         with Image.open(source) as img:
             return PreparedImage(source, img.width, img.height, image_colors(source))
 
-    cmyk = color_space == "cmyk"
     stamp = hashlib.sha1(
         f"{source}|{source.stat().st_mtime_ns}|{palette.as_tuple()}"
-        f"|{dither}|{color_space}".encode()
+        f"|{tritone}|{dither}|{color_space}".encode()
     ).hexdigest()[:16]
     cache_dir.mkdir(parents=True, exist_ok=True)
     # CMYK kann PNG nicht - fuer den Druck wird als CMYK-JPEG abgelegt.
@@ -87,14 +93,17 @@ def prepare_image(
                 background = Image.new("RGBA", img.size, hex_to_rgb(palette.paper) + (255,))
                 img = Image.alpha_composite(background, img)
             flat = img.convert("RGB")
-            mode = Image.Dither.FLOYDSTEINBERG if dither else Image.Dither.NONE
-            reduced = flat.quantize(palette=_palette_image(colors), dither=mode)
+            if tritone:
+                mode = Image.Dither.FLOYDSTEINBERG if dither else Image.Dither.NONE
+                flat = flat.quantize(palette=_palette_image(colors), dither=mode)
             if cmyk:
-                reduced.convert("CMYK").save(
+                # Der Druck laeuft in CMYK - auch ein Bild, das von der
+                # Drei-Farben-Regel ausgenommen ist, darf kein RGB einschleusen.
+                flat.convert("CMYK").save(
                     target, "JPEG", quality=jpeg_quality, subsampling=0
                 )
             else:
-                reduced.convert("RGB").save(target, "PNG", optimize=True)
+                flat.convert("RGB").save(target, "PNG", optimize=True)
 
     with Image.open(target) as img:
         size = (img.width, img.height)

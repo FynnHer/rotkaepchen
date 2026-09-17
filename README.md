@@ -7,7 +7,8 @@ Asset — Layout, Typografie und Farben stehen an genau einer Stelle:
 
 ```
 chapters/*.md      ──┐
-beispiele/bilder/* ──┼──►  buchbauer  ──►  build/rotkaeppchen.pdf
+beispiele/bilder/* ──┤
+assets/raetsel/*   ──┼──►  buchbauer  ──►  build/rotkaeppchen.pdf
 book.toml          ──┘                      + build/rotkaeppchen-farbreport.json
 ```
 
@@ -69,6 +70,43 @@ Drei Stufen, von der stärksten zur schwächsten Quelle — eine spätere
      Kapitelbild: wolf (Quelle: auto, Treffer: 3)
      Illustration: jaeger (Quelle: auto, Treffer: 2)
 ```
+
+## Mitmach-Seiten
+
+Drei Rätselseiten aus [`assets/raetsel/`](assets/raetsel) liegen zwischen den
+Kapiteln — ein Labyrinth, ein Wimmelbild und ein Zählbild. Sie sind **keine
+Illustrationen**: eigener Ordner, keine Stichwort-Zuordnung, keine
+Bildunterschrift. Jede füllt randabfallend eine ganze Seite und bringt
+Überschrift, Aufgabe und Lösung im Bild mit; Kolumnentitel und Seitenzahl
+bleiben deshalb weg.
+
+Platz und Reihenfolge stehen in `book.toml`. `after` ist die Nummer des
+Kapitels, **hinter** dem die Seite erscheint (`0` = vor dem ersten Kapitel,
+eine Nummer hinter dem letzten Kapitel schließt das Buch ab):
+
+```toml
+[activities]
+enabled = true
+dir     = "assets/raetsel"
+tritone = false   # von der Drei-Farben-Regel ausgenommen
+in_toc  = true    # eigene Zeile im Inhaltsverzeichnis
+
+[[activities.pages]]
+image = "labyrinth_raetsel"
+after = 4
+title = "Rätselseite: Rotkäppchens Weg"
+```
+
+| Seite | steht hinter | passt dort, weil |
+| --- | --- | --- |
+| Rotkäppchens Weg (Labyrinth) | 4 — Der helle Wald | der Weg zur Großmutter liegt vor ihr |
+| Wimmelbild | 9 — Der Streich | Wald, Bach und Haus, kurz vor der Ankunft |
+| Zähl mit! | 15 — Alle sind wieder froh | zum Nachzählen, wenn alles überstanden ist |
+
+`buchbauer inspect` zeigt die Seiten an ihrem Platz in der Kapitelfolge.
+Die Bilder bringen ihre eigene Bildwelt mit und werden nicht auf die
+Palette reduziert — gefärbt wird am Satz nichts, die Drei-Farben-Regel
+gilt auf diesen Seiten weiterhin für Papier und Schnittmarken.
 
 ## Das Farbsystem
 
@@ -134,8 +172,9 @@ Alles in `book.toml`, mit Kommentar an jedem Schlüssel:
 Issue #1 (Sprint 1) ist erfüllt: der Builder liest alle Kapitel eines
 Ordners, ordnet die Assets automatisch zu, erzeugt **eine** PDF-Datei, hält
 die Drei-Farben-Regel nachweisbar ein und hält alle Layout-Parameter
-zentral. Aus den 15 Kapiteln in `chapters/` entsteht ein Buch mit 33
-Seiten; 59 Tests decken die Bausteine ab.
+zentral. Aus den 15 Kapiteln in `chapters/` und den drei Rätselseiten in
+`assets/raetsel/` entsteht ein Buch mit 36 Seiten; 69 Tests decken die
+Bausteine ab.
 
 Aus Issue #4 sind Anschnitt, Schnittmarken, CMYK und die 300-dpi-Prüfung
 vorhanden; Rechtschreibprüfung und Probedruck stehen aus.
@@ -147,4 +186,11 @@ welche Auflösung erwartet werden. Danach zeigt `book.assets_dir` in
 `book.toml` dorthin; das ist eine Zeile, sonst ändert sich nichts.
 
 Issue #6 nimmt Bilder ausdrücklich von der Drei-Farben-Regel aus — dafür
-genügt `images.tritone = false`.
+genügt `images.tritone = false`; für die Rätselseiten ist das bereits der
+Standard (`activities.tritone = false`).
+
+Aus Issue #5 sind die spielerischen Aktivitäten eingebaut: drei
+Mitmach-Seiten, verteilt über die Geschichte. Ihre Vorlagen liegen bei
+1055 × 1491 px und damit bei rund 174 dpi im Endformat — für den Druck
+meldet der Bau das als Warnung, die Dateien müssen vor dem Probedruck in
+höherer Auflösung nachgeliefert werden.
