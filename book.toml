@@ -1,0 +1,120 @@
+# ---------------------------------------------------------------------------
+# Zentrale Konfiguration des Buchbauers.
+# Saemtliche Layout-, Typografie- und Farbparameter stehen ausschliesslich
+# hier. Kapitel-Dateien enthalten nur Inhalt.
+# ---------------------------------------------------------------------------
+
+[book]
+title         = "Rotkäppchen"
+subtitle      = "Ein Märchen der Brüder Grimm"
+author        = "Neu gesetzt vom Buchbauer"
+chapters_dir  = "chapters"        # Ordner mit den Kapitel-Markdown-Dateien
+assets_dir    = "assets/images"   # Ordner mit den Bild-Assets
+output        = "build/rotkaeppchen.pdf"
+cover_image   = "titelbild"       # Asset-Schluessel fuer die Titelseite
+cover_palette = "buch"
+
+[print]
+# Druckvorstufe. bleed_mm ist der Anschnitt, um den die PDF-Seite ueber das
+# Endformat hinausragt; der Papierton und randabfallende Bilder laufen hinein.
+bleed_mm            = 3.0
+crop_marks          = true    # Schnittmarken im Anschnitt
+crop_mark_length_mm = 4.0
+crop_mark_offset_mm = 1.5
+crop_mark_width_pt  = 0.25
+min_image_dpi       = 300.0   # darunter warnt der Builder beim Bau
+color_space         = "cmyk"  # "cmyk" fuer den Druck, "rgb" fuer die Bildschirmfassung
+jpeg_quality        = 95      # nur fuer CMYK - PNG kann diesen Farbraum nicht
+
+[cover]
+full_page_image   = true   # Titelbild randabfallend ueber die ganze Seite
+band_height_ratio = 0.34   # Anteil der Seitenhoehe fuer das Titelfeld
+band_inset_mm     = 0.0
+
+[page]
+format           = "A5"   # A4 | A5 | A6 | B5 | LETTER  oder  [breite_mm, hoehe_mm]
+margin_top_mm    = 20.0
+margin_bottom_mm = 22.0
+margin_left_mm   = 19.0
+margin_right_mm  = 19.0
+
+[typography]
+# Base-14-Namen als Rueckfallebene; font_files gewinnt, falls vorhanden.
+serif                   = "Times-Roman"
+serif_bold              = "Times-Bold"
+serif_italic            = "Times-Italic"
+sans                    = "Helvetica"
+body_size_pt            = 10.5
+leading_factor          = 1.52   # Zeilenabstand als Vielfaches der Schriftgroesse
+chapter_title_size_pt   = 25.0
+chapter_number_size_pt  = 8.5
+quote_size_pt           = 10.5
+caption_size_pt         = 8.0
+running_head_size_pt    = 7.5
+folio_size_pt           = 8.5
+space_after_paragraph_pt = 0.0
+first_line_indent_mm    = 4.5
+opening_initial         = true   # erste Zeile eines Kapitels mit Versalie
+initial_scale           = 2.0    # Groesse der Versalie als Vielfaches der Grundschrift
+cover_title_size_pt     = 44.0
+cover_subtitle_size_pt  = 11.5
+
+# Optionale TTF-Dateien. Fehlt eine Datei, wird still auf Base-14 zurueckgefallen.
+[typography.font_files]
+regular    = "/System/Library/Fonts/Supplemental/Georgia.ttf"
+bold       = "/System/Library/Fonts/Supplemental/Georgia Bold.ttf"
+italic     = "/System/Library/Fonts/Supplemental/Georgia Italic.ttf"
+bolditalic = "/System/Library/Fonts/Supplemental/Georgia Bold Italic.ttf"
+
+[images]
+# Werte > 1.0 lassen das Bild in die Raender laufen - Illustrationen sollen
+# praesent sein, nicht in der Textspalte verschwinden.
+width_ratio             = 1.08   # Anteil der Satzspiegelbreite
+max_height_ratio        = 0.52   # Anteil der Satzspiegelhoehe
+opener_width_ratio      = 1.16   # Kapitelbild auf dem Aufschlag
+opener_max_height_ratio = 0.46
+tritone                 = true   # Bilder auf die Kapitelpalette reduzieren
+dither                  = true   # Rasterung: erhaelt Mitteltoene, die drei Farben allein nicht abbilden
+space_before_mm         = 6.0
+space_after_mm          = 4.0
+captions                = true
+auto_min_score          = 3    # Stichwort-Treffer, ab denen automatisch illustriert wird
+max_auto_illustrations  = 1    # zusaetzliche Automatik-Bilder je Kapitel (ohne Kapitelbild)
+title_weight            = 5    # Gewicht eines Stichwort-Treffers im Kapiteltitel
+
+[colors]
+max_per_page    = 3        # Farben je Seite, wird nach dem Bau geprueft
+max_total       = 3        # Farben im ganzen Buch - der Druck laeuft 3-farbig
+paper_counts    = true     # der Papierton zaehlt als eine der drei Farben
+default_palette = "buch"
+rotate          = []       # spaeter: je Seite/Kapitel eine eigene Palette
+
+# Eine Palette besteht aus genau drei Rollen. Solange max_total = 3 gilt,
+# duerfen weitere Paletten nur dieselben drei Farben anders verteilen.
+[colors.palettes.buch]
+paper  = "#F4ECDC"   # warmer Pergamentton
+ink    = "#2A3B2E"   # Waldgruen, dunkel
+accent = "#A81E2D"   # Rotkaeppchen-Rot
+
+[toc]
+enabled = true
+title   = "Inhalt"
+
+# Stichworte fuer die automatische Kapitel-Zuordnung der Bilder.
+# Schluessel = Dateiname im Asset-Ordner (ohne Endung).
+[assets.aliases]
+rotkaeppchen = ["Rotkäppchen", "Mädchen", "Käppchen", "Kind"]
+wolf         = ["Wolf", "Wölfe", "Untier", "Bestie"]
+grossmutter  = ["Großmutter", "Großmütterchen", "Oma", "Ahnin"]
+jaeger       = ["Jäger", "Förster", "Büchse", "Schere"]
+wald         = ["Wald", "Bäume", "Tannen", "Dickicht", "Gehölz"]
+titelbild    = []   # nur fuer den Umschlag, nie automatisch zugeordnet
+
+# Bildunterschriften. Ohne Eintrag bleibt eine Illustration unbeschriftet;
+# ein ![Text](wolf) im Markdown hat immer Vorrang.
+[assets.captions]
+rotkaeppchen = "Rotkäppchen macht sich auf den Weg"
+wolf         = "Der Wolf im Dickicht"
+grossmutter  = "Das Haus der Großmutter"
+jaeger       = "Der Jäger kommt vorbei"
+wald         = "Der Wald zwischen Dorf und Haus"
