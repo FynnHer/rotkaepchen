@@ -76,7 +76,10 @@ bolditalic = "/System/Library/Fonts/Supplemental/Georgia Bold Italic.ttf"
 width_ratio             = 1.08   # Anteil der Satzspiegelbreite
 max_height_ratio        = 0.52   # Anteil der Satzspiegelhoehe
 opener_width_ratio      = 1.16   # Kapitelbild auf dem Aufschlag
-opener_max_height_ratio = 0.46
+# 0.38 ist die groesste Hoehe, bei der jedes Kapitel vollstaendig auf
+# seinen Aufschlag passt. Darueber rutschen ein bis zwei Restzeilen auf
+# eine sonst leere Folgeseite - bei "Der Wolf" war es ein einzelnes Wort.
+opener_max_height_ratio = 0.38
 tritone                 = false  # Illustrationen bleiben, wie sie sind - eigene Bildwelt, wie Umschlag und Raetselseiten
 dither                  = true   # nur wirksam, wenn tritone wieder eingeschaltet wird
 space_before_mm         = 6.0
@@ -165,9 +168,30 @@ image = "zaehl_raetsel"
 after = 15         # nach dem letzten Kapitel - zum Nachzaehlen am Schluss
 title = "Rätselseite: Zähl mit!"
 
+# ---------------------------------------------------------------------------
+# Das Banner der Foerderer. Es steht auf einer eigenen Seite zwischen
+# Umschlag und Inhalt. "name_lines" ist der Name, von Hand umbrochen -
+# so faellt die Zeile dort, wo sie fallen soll.
+# ---------------------------------------------------------------------------
+[sponsor]
+enabled    = true
+label      = "Mit freundlicher Unterstützung von"
+name_lines = ["Bau & Arbeitssicherheit", "Mannfred Baumstamm"]
+tagline    = ""
+palette    = "hearth"   # wie das Dorf - die Seite steht im Vorspann
+width_ratio     = 1.06  # Anteil der Satzspiegelbreite
+height_ratio    = 0.20  # Anteil der Satzspiegelhoehe
+label_size_pt   = 9.5
+name_size_pt    = 19.0
+tagline_size_pt = 9.0
+
 [toc]
 enabled = true
 title   = "Inhalt"
+# Knapp genug, dass alle Zeilen auf eine Seite passen: eine zweite
+# Verzeichnisseite mit sechs Resteintraegen sieht nach Versehen aus.
+entry_leading_factor = 1.38
+space_before_ratio   = 0.02
 
 # Stichworte fuer die automatische Kapitel-Zuordnung der Bilder.
 # Schluessel = Dateiname im Asset-Ordner (ohne Endung).
