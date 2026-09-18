@@ -8,10 +8,12 @@ die Vorlage festgelegt und muss nicht zur Zeichenzeit erraten werden.
 from __future__ import annotations
 
 import re
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 
 from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY, TA_LEFT, TA_RIGHT
+from reportlab.lib.units import mm
 from reportlab.lib.utils import ImageReader
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.pdfbase import pdfmetrics
@@ -180,6 +182,93 @@ class ActivityImage(Flowable):
         )
 
 
+class SponsorBanner(Flowable):
+    """Das Banner der Foerderer im Buchvorspann.
+
+    Ein doppelt gerahmtes Band in der Akzentfarbe. Es zeichnet seinen Text
+    selbst auf das Canvas, statt Absaetze zu schachteln: so steht jede
+    Zeile sicher mittig und das Band bringt ausser Schrift- und
+    Akzentfarbe keine dritte Farbe mit.
+    """
+
+    def __init__(
+        self,
+        width: float,
+        height: float,
+        label: str,
+        lines: Sequence[str],
+        tagline: str,
+        fonts: dict[str, str],
+        sizes: dict[str, float],
+        ink,
+        accent,
+    ):
+        super().__init__()
+        self.width = width
+        self.height = height
+        self.banner_width = width
+        self.label = label
+        self.lines = list(lines)
+        self.tagline = tagline
+        self.fonts = fonts
+        self.sizes = sizes
+        self.ink = ink
+        self.accent = accent
+
+    def wrap(self, available_width: float, available_height: float):
+        # Wie WideImage: dem Rahmen nur seine eigene Breite melden und
+        # darueber hinaus mittig in die Raender zeichnen.
+        self.width = available_width
+        return (available_width, self.height)
+
+    def draw(self):
+        canv = self.canv
+        left = (self.width - self.banner_width) / 2.0
+        canv.setStrokeColor(self.accent)
+        canv.setLineWidth(1.2)
+        canv.rect(left, 0, self.banner_width, self.height, stroke=1, fill=0)
+        inset = 2.8 * mm
+        canv.setLineWidth(0.4)
+        canv.rect(
+            left + inset,
+            inset,
+            self.banner_width - 2 * inset,
+            self.height - 2 * inset,
+            stroke=1,
+            fill=0,
+        )
+
+        middle = left + self.banner_width / 2.0
+        # Der Textblock steht mittig im Band, nicht oben angeschlagen -
+        # sonst haengt unter dem Namen eine leere Flaeche.
+        cursor = self.height / 2.0 + self._text_height() / 2.0 - self.sizes["label"]
+        canv.setFont(self.fonts["italic"], self.sizes["label"])
+        canv.setFillColor(self.accent)
+        canv.drawCentredString(middle, cursor, self.label)
+
+        cursor -= self.sizes["name"] * 1.45
+        canv.setFont(self.fonts["bold"], self.sizes["name"])
+        canv.setFillColor(self.ink)
+        for line in self.lines:
+            canv.drawCentredString(middle, cursor, line)
+            cursor -= self.sizes["name"] * 1.22
+
+        if self.tagline:
+            cursor += self.sizes["name"] * 1.22
+            cursor -= self.sizes["tagline"] * 2.2
+            canv.setFont(self.fonts["italic"], self.sizes["tagline"])
+            canv.setFillColor(self.accent)
+            canv.drawCentredString(middle, cursor, self.tagline)
+
+    def _text_height(self) -> float:
+        """Hoehe des gesetzten Textblocks - Grundlage der Zentrierung."""
+        height = self.sizes["label"] + self.sizes["name"] * 1.45
+        height += self.sizes["name"] * 1.22 * max(len(self.lines) - 1, 0)
+        if self.tagline:
+            height += self.sizes["tagline"] * 2.2
+        return height
+
+
 class Rule(Flowable):
     """Eine haarfeine Linie in einer Palettenfarbe."""
 
@@ -321,6 +410,12 @@ class BookBuilder:
             spaceAfter=t.space_after_paragraph,
             hyphenationLang="de_DE",
             embeddedHyphenation=1,
+            # Keine Hurenkinder und keine Schusterjungen: eine einzelne
+            # Zeile - schlimmstenfalls ein einzelnes Wort - darf nicht
+            # allein auf der Folgeseite stehen. ReportLab nimmt dann
+            # mindestens zwei Zeilen mit hinueber.
+            allowWidows=0,
+            allowOrphans=0,
         )
         result = {
             "body": body,
@@ -426,7 +521,7 @@ class BookBuilder:
                 f"toc-{palette.name}",
                 fontName=self._fonts["regular"],
                 fontSize=t.body_size,
-                leading=t.body_size * 1.9,
+                leading=t.body_size * self.config.toc.entry_leading_factor,
                 textColor=self.color(ink),
                 firstLineIndent=0,
             ),
@@ -723,7 +818,13 @@ class BookBuilder:
                     out.append(Paragraph(item, styles["list"], bulletText="–"))
             elif block.kind == "image":
                 out.extend(
-                    self._image_flowable(block.src, block.alt, palette, opener=False)
+                    self._image_flowable(
+                        block.src,
+                        block.alt,
+                        palette,
+                        opener=False,
+                        height_ratio=chapter.body_height_ratio,
+                    )
                 )
             elif block.kind == "break":
                 out.append(Spacer(1, self.config.typography.body_size * 0.7))
@@ -784,6 +885,37 @@ class BookBuilder:
             out.append(Paragraph(config.author, styles["cover_subtitle"]))
         return out
 
+    def _sponsor_flowables(self) -> list:
+        """Das Foerderer-Banner auf einer eigenen Seite hinter dem Umschlag."""
+        sponsor = self.config.sponsor
+        if not sponsor.enabled or not sponsor.name_lines:
+            return []
+        palette = self.config.colors.get(sponsor.palette)
+        page = self.config.page
+        banner = SponsorBanner(
+            width=page.frame_width * sponsor.width_ratio,
+            height=page.frame_height * sponsor.height_ratio,
+            label=sponsor.label,
+            lines=sponsor.name_lines,
+            tagline=sponsor.tagline,
+            fonts=self._fonts,
+            sizes={
+                "label": sponsor.label_size,
+                "name": sponsor.name_size,
+                "tagline": sponsor.tagline_size,
+            },
+            ink=self.color(palette.ink),
+            accent=self.color(palette.accent),
+        )
+        return [
+            NextPageTemplate(f"{palette.name}-opener"),
+            PageBreak(),
+            # Das Band steht auf der oberen Haelfte der Seite - so liest es
+            # sich als Vorspann und nicht als verrutschtes Kapitel.
+            Spacer(1, page.frame_height * 0.22),
+            banner,
+        ]
+
     def _toc_flowables(self, palette: Palette) -> list:
         styles = self.styles(palette)
         toc = TableOfContents()
@@ -798,7 +930,10 @@ class BookBuilder:
             ("TEXTCOLOR", (0, 0), (-1, -1), self.color(palette.ink)),
         ])
         return [
-            Spacer(1, self.config.page.frame_height * 0.12),
+            Spacer(
+                1,
+                self.config.page.frame_height * self.config.toc.space_before_ratio,
+            ),
             Paragraph(self.config.toc.title, styles["chapter_title"]),
             Spacer(1, 6),
             Rule(self.config.page.frame_width * 0.3, self.color(palette.accent), 0.8),
@@ -871,6 +1006,7 @@ class BookBuilder:
 
         story: list = self._cover_flowables()
         default_palette = config.colors.get(None)
+        story.extend(self._sponsor_flowables())
         if config.toc.enabled:
             story.append(NextPageTemplate(f"{default_palette.name}-opener"))
             story.append(PageBreak())

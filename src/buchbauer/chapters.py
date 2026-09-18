@@ -25,6 +25,8 @@ class Chapter:
     body: list[Block] = field(default_factory=list)
     # Ueberschreibt die Hoehe des Kapitelbildes fuer diese eine Seite.
     hero_height_ratio: float | None = None
+    # Dasselbe fuer die Bilder im Fliesstext.
+    body_height_ratio: float | None = None
 
     @property
     def running_head(self) -> str:
@@ -182,4 +184,5 @@ def load_about(config: BookConfig, library: AssetLibrary | None = None) -> Chapt
         assets=matched,
         body=place_images(body, matched),
         hero_height_ratio=about.image_height_ratio,
+        body_height_ratio=about.body_image_height_ratio,
     )

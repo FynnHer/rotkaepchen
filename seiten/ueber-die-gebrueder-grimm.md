@@ -17,3 +17,9 @@ Bis heute werden ihre Märchen auf der ganzen Welt gelesen und vorgelesen.
 
 Und jetzt wünschen wir euch viel Freude mit unserer ganz eigenen Version von
 Rotkäppchen!
+
+## Mehr von den Brüdern Grimm
+
+![Schneewittchen](werbung_schneewittchen)
+
+![Der Wolf und die sieben Geißlein](werbung_wolf)

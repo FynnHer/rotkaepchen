@@ -25,6 +25,7 @@ __all__ = [
     "PrintConfig",
     "CoverConfig",
     "AboutConfig",
+    "SponsorConfig",
     "ActivityPage",
     "ActivityConfig",
     "Palette",
@@ -238,6 +239,9 @@ class AboutConfig:
     # Anteil der Satzspiegelhoehe fuer das Bild. Kleiner als bei einem
     # Kapitelaufschlag, damit Bild und Text auf eine Seite passen.
     image_height_ratio: float = 0.34
+    # Dasselbe fuer die Bilder im Fliesstext der Seite - die beiden
+    # Werbe-Umschlaege sollen zu zweit auf eine Seite passen.
+    body_image_height_ratio: float | None = None
 
 
 @dataclass(frozen=True)
@@ -280,6 +284,43 @@ class ActivityConfig:
 class TocConfig:
     enabled: bool = True
     title: str = "Inhalt"
+    # Zeilenabstand einer Verzeichniszeile und der Vorlauf ueber dem Titel,
+    # beides so knapp, dass alle Zeilen auf eine Seite passen.
+    entry_leading_factor: float = 1.9
+    space_before_ratio: float = 0.12
+
+
+@dataclass(frozen=True)
+class SponsorConfig:
+    """Das Banner der Foerderer im Vorspann des Buches.
+
+    Es steht auf einer eigenen Seite zwischen Umschlag und Inhalt -
+    ``name_lines`` ist der Name, von Hand umbrochen, damit das Band den
+    Zeilenfall nicht dem Zufall ueberlaesst.
+    """
+
+    enabled: bool = False
+    label: str = "Mit freundlicher Unterstützung von"
+    name_lines: tuple[str, ...] = ()
+    tagline: str = ""
+    palette: str | None = None
+    width_ratio: float = 1.06
+    height_ratio: float = 0.30
+    label_size_pt: float = 9.5
+    name_size_pt: float = 19.0
+    tagline_size_pt: float = 9.0
+
+    @property
+    def label_size(self) -> float:
+        return self.label_size_pt
+
+    @property
+    def name_size(self) -> float:
+        return self.name_size_pt
+
+    @property
+    def tagline_size(self) -> float:
+        return self.tagline_size_pt
 
 
 @dataclass(frozen=True)
@@ -301,6 +342,7 @@ class BookConfig:
     printing: PrintConfig
     cover: CoverConfig
     about: AboutConfig
+    sponsor: SponsorConfig
     activities: ActivityConfig
     asset_aliases: dict[str, list[str]]
     asset_captions: dict[str, str]
@@ -368,7 +410,24 @@ DEFAULTS: dict[str, Any] = {
         "rotate": [],
         "palettes": {},
     },
-    "toc": {"enabled": True, "title": "Inhalt"},
+    "sponsor": {
+        "enabled": False,
+        "label": "Mit freundlicher Unterstützung von",
+        "name_lines": [],
+        "tagline": "",
+        "palette": None,
+        "width_ratio": 1.06,
+        "height_ratio": 0.30,
+        "label_size_pt": 9.5,
+        "name_size_pt": 19.0,
+        "tagline_size_pt": 9.0,
+    },
+    "toc": {
+        "enabled": True,
+        "title": "Inhalt",
+        "entry_leading_factor": 1.9,
+        "space_before_ratio": 0.12,
+    },
     "print": {
         "bleed_mm": 0.0,
         "crop_marks": False,
@@ -393,6 +452,7 @@ DEFAULTS: dict[str, Any] = {
         "after": 0,
         "palette": None,
         "image_height_ratio": 0.34,
+        "body_image_height_ratio": None,
     },
     "activities": {
         "enabled": True,
@@ -450,6 +510,35 @@ def _build_about(raw: dict[str, Any], root: Path, colors: ColorConfig) -> AboutC
         after=after,
         palette=str(palette) if palette else None,
         image_height_ratio=float(raw.get("image_height_ratio", 0.34)),
+        body_image_height_ratio=(
+            float(body) if (body := raw.get("body_image_height_ratio")) else None
+        ),
+    )
+
+
+def _build_sponsor(raw: dict[str, Any], colors: ColorConfig) -> SponsorConfig:
+    """Liest ``[sponsor]`` - das Foerderer-Banner im Vorspann."""
+    enabled = bool(raw.get("enabled", False))
+    lines = [str(v).strip() for v in (raw.get("name_lines") or []) if str(v).strip()]
+    if enabled and not lines:
+        raise ConfigError(
+            "sponsor.enabled ist gesetzt, aber sponsor.name_lines ist leer - "
+            "ohne Namen gibt es nichts zu bannern."
+        )
+    palette = raw.get("palette")
+    if palette:
+        colors.get(str(palette))
+    return SponsorConfig(
+        enabled=enabled,
+        label=str(raw.get("label", "") or ""),
+        name_lines=tuple(lines),
+        tagline=str(raw.get("tagline", "") or ""),
+        palette=str(palette) if palette else None,
+        width_ratio=float(raw.get("width_ratio", 1.06)),
+        height_ratio=float(raw.get("height_ratio", 0.30)),
+        label_size_pt=float(raw.get("label_size_pt", 9.5)),
+        name_size_pt=float(raw.get("name_size_pt", 19.0)),
+        tagline_size_pt=float(raw.get("tagline_size_pt", 9.0)),
     )
 
 
@@ -665,7 +754,10 @@ def load_config(path: str | Path) -> BookConfig:
         images=images,
         colors=colors,
         toc=TocConfig(
-            enabled=bool(data["toc"]["enabled"]), title=str(data["toc"]["title"])
+            enabled=bool(data["toc"]["enabled"]),
+            title=str(data["toc"]["title"]),
+            entry_leading_factor=float(data["toc"]["entry_leading_factor"]),
+            space_before_ratio=float(data["toc"]["space_before_ratio"]),
         ),
         printing=printing,
         cover=CoverConfig(
@@ -680,6 +772,7 @@ def load_config(path: str | Path) -> BookConfig:
             band_inset_mm=float(data["cover"]["band_inset_mm"]) * mm,
         ),
         about=about,
+        sponsor=_build_sponsor(data["sponsor"], colors),
         activities=activities,
         asset_aliases=aliases,
         asset_captions=captions,

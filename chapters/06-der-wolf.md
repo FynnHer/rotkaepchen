@@ -3,6 +3,7 @@ title: Der Wolf
 subtitle: Von einem fremden Tier auf dem Waldweg
 order: 6
 palette: wald
+hero: Kapitel 6
 ---
 
 Plötzlich trat ein **Wolf** aus dem Gebüsch.

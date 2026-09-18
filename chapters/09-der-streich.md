@@ -3,6 +3,7 @@ title: Der Streich
 subtitle: Von einer versteckten Oma und einer listigen Verkleidung
 order: 9
 palette: daemmer
+hero: Kapitel 9
 ---
 
 Der Wolf spielte der Oma einen **Streich**.

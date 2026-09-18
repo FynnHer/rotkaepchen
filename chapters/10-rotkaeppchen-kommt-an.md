@@ -3,6 +3,7 @@ title: Rotkäppchen kommt an
 subtitle: Von einem Klopfen, einem Ruf und einer offenen Tür
 order: 10
 palette: daemmer
+hero: Kapitel 10
 ---
 
 Rotkäppchen kam am Haus der Oma an.

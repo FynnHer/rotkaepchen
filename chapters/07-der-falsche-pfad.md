@@ -3,6 +3,7 @@ title: Der falsche Pfad
 subtitle: Von einem listigen Vorschlag und einem klugen Kind
 order: 7
 palette: wald
+hero: Kapitel 7
 ---
 
 Der Wolf zeigte auf einen anderen **Pfad** im Wald.

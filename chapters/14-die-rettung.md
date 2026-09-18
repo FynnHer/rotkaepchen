@@ -3,6 +3,7 @@ title: Die Rettung
 subtitle: Von einem mutigen Jäger und einer besonderen Befreiung
 order: 14
 palette: daemmer
+hero: Kapitel 14
 ---
 
 Der **Jäger** stieß die Tür auf und schaute dem Wolf fest in die Augen.

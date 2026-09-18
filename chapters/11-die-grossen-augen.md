@@ -3,6 +3,7 @@ title: Die großen Augen
 subtitle: Von einem merkwürdigen Besuch am Bett der Oma
 order: 11
 palette: daemmer
+hero: Kapitel 11
 ---
 
 Rotkäppchen trat näher ans Bett und schaute genau hin.

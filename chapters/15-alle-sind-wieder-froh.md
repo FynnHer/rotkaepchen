@@ -3,6 +3,7 @@ title: Alle sind wieder froh
 subtitle: Von einer großen Umarmung, Sicherheit und einer wichtigen Lektion
 order: 15
 palette: hearth
+hero: Kapitel 15
 ---
 
 Oma, Rotkäppchen und der Jäger umarmten sich fest.
